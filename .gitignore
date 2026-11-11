@@ -1,0 +1,13 @@
+# Carpeta privada: banco sin cifrar, clave y logotipos aprobados. NUNCA se publica.
+privado/
+
+# Resultados exportados
+sinapsis-*.csv
+sinapsis-*.json
+
+node_modules/
+.DS_Store
+Thumbs.db
+
+# Configuración local del editor/agente
+.claude/

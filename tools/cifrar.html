@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>SINAPSIS · Editor del banco</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/base.css" />
+  <style>
+    body { padding: 32px 16px 60px; }
+    .wrap { width: min(980px, 100%); margin: 0 auto; display: grid; gap: 22px; }
+    h1 { margin: 6px 0 0; font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; }
+    p { margin: 0; line-height: 1.5; }
+    .card { border: 1px solid var(--line); padding: 22px; display: grid; gap: 14px; background: #fff; }
+    .card h2 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+    .row .field { flex: 1 1 220px; }
+    textarea { width: 100%; min-height: 420px; font-family: var(--mono); font-size: .82rem; line-height: 1.5; padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); resize: vertical; }
+    textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px var(--red-tint); }
+    .msg { font-size: .9rem; min-height: 1.2em; }
+    .msg.ok { color: var(--ink); }
+    .msg.bad { color: var(--red-dark); }
+    .steps { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--ink-2); font-size: .95rem; }
+    code { font-family: var(--mono); font-size: .85em; background: var(--bg-2); padding: 1px 5px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div>
+      <span class="kicker">Herramienta del anfitrión</span>
+      <h1>Editor y cifrado del banco de preguntas</h1>
+    </div>
+    <div class="card">
+      <h2>Cómo funciona</h2>
+      <ol class="steps">
+        <li>Abre tu banco: carga <code>privado/banco.json</code> o descifra el <code>data/banco.enc.json</code> actual con su clave.</li>
+        <li>Edita el JSON (preguntas, opciones, <code>correct</code> = 0 para A, 1 para B, 2 para C, 3 para D).</li>
+        <li>Escribe una clave y descarga <code>banco.enc.json</code>. Reemplaza el archivo en la carpeta <code>data/</code>.</li>
+      </ol>
+      <p class="muted">Todo ocurre en tu navegador: nada se envía a ningún servidor.</p>
+    </div>
+
+    <div class="card">
+      <h2>1 · Abrir</h2>
+      <div class="row">
+        <div class="field"><label for="file">Archivo .json (sin cifrar o cifrado)</label><input id="file" type="file" accept=".json,application/json" /></div>
+        <div class="field"><label for="open-pass">Clave (solo si el archivo está cifrado)</label><input id="open-pass" type="password" class="input" autocomplete="off" /></div>
+        <button class="btn" id="btn-open">Abrir</button>
+        <button class="btn btn-ghost" id="btn-current">Descifrar el banco publicado</button>
+      </div>
+      <div class="msg" id="open-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Editar</h2>
+      <textarea id="json" spellcheck="false" placeholder='{ "domains": { ... }, "questions": [ ... ] }'></textarea>
+      <div class="row"><button class="btn" id="btn-validate">Validar</button><button class="btn btn-ghost" id="btn-plain">Descargar sin cifrar (uso privado)</button></div>
+      <div class="msg" id="val-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>3 · Cifrar</h2>
+      <div class="row">
+        <div class="field"><label for="pass1">Clave nueva</label><input id="pass1" type="password" class="input" autocomplete="new-password" /></div>
+        <div class="field"><label for="pass2">Repite la clave</label><input id="pass2" type="password" class="input" autocomplete="new-password" /></div>
+        <button class="btn btn-primary" id="btn-encrypt">Cifrar y descargar</button>
+      </div>
+      <div class="msg" id="enc-msg"></div>
+      <p class="muted">Usa al menos 12 caracteres. Guárdala en un lugar seguro: sin ella no se puede abrir la sala.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { encryptBank, decryptBank, validateBank } from '../js/crypto.js';
+    import { download } from '../js/util.js';
+    const $ = (s) => document.querySelector(s);
+    const msg = (el, text, ok) => { el.textContent = text; el.className = 'msg ' + (ok ? 'ok' : 'bad'); };
+    const setJson = (obj) => { $('#json').value = JSON.stringify(obj, null, 2); };
+
+    async function openPayload(obj) {
+      if (obj.app === 'sinapsis' && obj.data) {
+        const pass = $('#open-pass').value;
+        if (!pass) throw new Error('El archivo está cifrado: escribe su clave.');
+        return decryptBank(obj, pass);
+      }
+      return obj;
+    }
+
+    $('#btn-open').addEventListener('click', async () => {
+      const el = $('#open-msg');
+      try {
+        const f = $('#file').files?.[0];
+        if (!f) throw new Error('Elige un archivo.');
+        const bank = await openPayload(JSON.parse(await f.text()));
+        setJson(bank);
+        msg(el, `Banco abierto: ${bank.questions?.length ?? 0} preguntas.`, true);
+      } catch (e) { msg(el, e.message, false); }
+    });
+
+    $('#btn-current').addEventListener('click', async () => {
+      const el = $('#open-msg');
+      try {
+        const res = await fetch('../data/banco.enc.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('No se encontró data/banco.enc.json.');
+        const bank = await openPayload(await res.json());
+        setJson(bank);
+        msg(el, `Banco publicado descifrado: ${bank.questions?.length ?? 0} preguntas.`, true);
+      } catch (e) { msg(el, e.message, false); }
+    });
+
+    function parse() {
+      const bank = JSON.parse($('#json').value);
+      const problems = validateBank(bank);
+      if (problems.length) throw new Error(problems.join(' · '));
+      return bank;
+    }
+
+    $('#btn-validate').addEventListener('click', () => {
+      try { const b = parse(); msg($('#val-msg'), `Todo en orden: ${b.questions.length} preguntas en ${Object.keys(b.domains).length} dominios.`, true); }
+      catch (e) { msg($('#val-msg'), e.message, false); }
+    });
+
+    $('#btn-plain').addEventListener('click', () => {
+      try { download('banco.json', JSON.stringify(parse(), null, 2) + '\n', 'application/json'); msg($('#val-msg'), 'Descargado. Guárdalo en privado/: no lo publiques.', true); }
+      catch (e) { msg($('#val-msg'), e.message, false); }
+    });
+
+    $('#btn-encrypt').addEventListener('click', async () => {
+      const el = $('#enc-msg');
+      try {
+        const bank = parse();
+        const p1 = $('#pass1').value;
+        if (p1.length < 12) throw new Error('La clave debe tener al menos 12 caracteres.');
+        if (p1 !== $('#pass2').value) throw new Error('Las claves no coinciden.');
+        const payload = await encryptBank(bank, p1);
+        await decryptBank(payload, p1);
+        download('banco.enc.json', JSON.stringify(payload, null, 2) + '\n', 'application/json');
+        msg(el, 'Listo: reemplaza data/banco.enc.json con el archivo descargado.', true);
+      } catch (e) { msg(el, e.message, false); }
+    });
+  </script>
+</body>
+</html>

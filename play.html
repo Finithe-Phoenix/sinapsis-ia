@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="robots" content="noindex" />
+  <title>SINAPSIS · Participante</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/play.css" />
+</head>
+<body class="play">
+  <div class="topline" aria-hidden="true"></div>
+  <header class="p-head">
+    <span class="wordmark"><span class="dot"></span><span class="app-name">SINAPSIS</span></span>
+    <span class="p-me hidden" id="me-chip"></span>
+  </header>
+
+  <main class="p-main">
+    <!-- Unirse -->
+    <section class="p-screen active" id="p-join">
+      <div class="p-hero">
+        <span class="kicker">Evaluación de IA</span>
+        <h1>Únete a la red</h1>
+        <p class="muted">Sin ranking ni ganadores. Tus respuestas alimentan un informe del equipo.</p>
+      </div>
+      <form id="join-form" class="p-form" autocomplete="off">
+        <div class="field" id="pin-field">
+          <label for="pin">PIN de la sala</label>
+          <input id="pin" class="input mono pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" />
+        </div>
+        <div class="field" id="alias-field">
+          <label for="alias" id="alias-label">Tu alias</label>
+          <div class="alias-row">
+            <input id="alias" class="input" maxlength="24" placeholder="Nodo Prisma 42" />
+            <button type="button" class="btn dice" id="dice" aria-label="Generar alias aleatorio" title="Alias aleatorio">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>
+            </button>
+          </div>
+          <span class="hint" id="alias-hint">Usa un alias: no escribas tu número de empleado ni tu correo.</span>
+        </div>
+        <div class="error" id="join-err" role="alert"></div>
+        <button class="btn btn-primary btn-block" id="btn-join" type="submit">Entrar</button>
+      </form>
+    </section>
+
+    <!-- Espera -->
+    <section class="p-screen" id="p-wait">
+      <div class="p-center">
+        <div class="node-anim" aria-hidden="true"><span></span><span></span><span></span></div>
+        <span class="kicker">Estás conectado</span>
+        <h2 id="wait-title">Bienvenido a la red</h2>
+        <p class="muted">Mira la pantalla principal. La evaluación comenzará en breve.</p>
+      </div>
+    </section>
+
+    <!-- Capítulo -->
+    <section class="p-screen" id="p-chapter">
+      <div class="p-center">
+        <span class="kicker" id="pc-kicker">Capítulo 01</span>
+        <h2 class="p-domain" id="pc-domain">Modelos</h2>
+        <div class="p-rule"></div>
+        <p class="muted">Prepárate…</p>
+      </div>
+    </section>
+
+    <!-- Pregunta -->
+    <section class="p-screen" id="p-question">
+      <div class="pq-head">
+        <span class="mono" id="pq-count">Pregunta 1 / 10</span>
+        <span class="pq-timer mono" id="pq-timer">40</span>
+      </div>
+      <div class="segs" id="pq-segs" aria-hidden="true"></div>
+      <div class="pq-bar"><div id="pq-bar-fill"></div></div>
+      <p class="pq-text" id="pq-text"></p>
+      <div class="pq-options" id="pq-options"></div>
+    </section>
+
+    <!-- Pregunta (modo sin conexión) -->
+    <section class="p-screen" id="p-oq">
+      <div class="pq-head">
+        <span class="mono" id="oq-count">Pregunta 1 / 10</span>
+        <span>Mira la pantalla principal</span>
+      </div>
+      <div class="tiles" id="oq-tiles" aria-label="Progreso"></div>
+      <h2 class="oq-title">¿Cuál es tu respuesta?</h2>
+      <div class="pq-options oq-options" id="oq-options"></div>
+      <button class="btn btn-ghost btn-block" id="oq-skip">No alcancé a responder esta</button>
+    </section>
+
+    <!-- Entre preguntas (modo sin conexión) -->
+    <section class="p-screen" id="p-onext">
+      <div class="p-center">
+        <div class="sent-badge" id="onext-badge"></div>
+        <span class="kicker" id="onext-kicker">Respuesta guardada</span>
+        <h2 id="onext-title">Espera la pregunta 2</h2>
+        <p class="muted">Cuando aparezca en la pantalla principal, toca continuar.</p>
+        <button class="btn btn-primary btn-block" id="onext-go">Ir a la pregunta 2</button>
+        <div class="tiles" id="onext-tiles"></div>
+      </div>
+    </section>
+
+    <!-- Código de resultados (modo sin conexión) -->
+    <section class="p-screen" id="p-code">
+      <div class="dossier">
+        <span class="kicker">Evaluación completa</span>
+        <h2>Tu código de resultados</h2>
+        <p class="muted">Cópialo y pégalo en el chat de la reunión. Con él se genera el informe del equipo.</p>
+        <div class="code-box mono" id="code-text"></div>
+        <button class="btn btn-primary btn-block" id="btn-copy">Copiar mensaje para el chat</button>
+        <textarea id="copy-area" class="copy-area hidden" readonly rows="2"></textarea>
+        <p class="small muted" id="copy-msg"></p>
+        <div class="d-section">
+          <h3>Desbloquear mi dossier</h3>
+          <p class="muted">Al final, la pantalla principal mostrará una clave.</p>
+          <div class="alias-row">
+            <input id="key-input" class="input mono" placeholder="ABCD-ABCD-AB0" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+            <button class="btn" id="btn-key">Ver</button>
+          </div>
+          <div class="error" id="key-err" role="alert"></div>
+        </div>
+        <button class="link-btn" id="btn-reset">Empezar de nuevo</button>
+      </div>
+    </section>
+
+    <!-- Confianza -->
+    <section class="p-screen" id="p-conf">
+      <div class="p-center">
+        <div class="sent-badge" id="conf-badge"></div>
+        <span class="kicker">Respuesta registrada</span>
+        <h2>¿Qué tan seguro estás?</h2>
+        <p class="muted">Nos ayuda a medir la confianza del equipo. No cambia tu respuesta.</p>
+        <div class="conf-btns">
+          <button class="btn conf" data-level="0"><span class="lv lv3" aria-hidden="true"><i></i><i></i><i></i></span><span class="cl"><b>Seguro</b><small>Lo sé</small></span></button>
+          <button class="btn conf" data-level="1"><span class="lv lv2" aria-hidden="true"><i></i><i></i><i></i></span><span class="cl"><b>Dudando</b><small>Creo saberlo</small></span></button>
+          <button class="btn conf" data-level="2"><span class="lv lv1" aria-hidden="true"><i></i><i></i><i></i></span><span class="cl"><b>Adiviné</b><small>No lo sé</small></span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Enviada -->
+    <section class="p-screen" id="p-sent">
+      <div class="p-center">
+        <div class="sent-badge" id="sent-badge"></div>
+        <span class="kicker" id="sent-kicker">Respuesta registrada</span>
+        <h2 id="sent-title">Esperando al resto del equipo</h2>
+        <div class="dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>
+    </section>
+
+    <!-- Revelación -->
+    <section class="p-screen" id="p-reveal">
+      <div class="pr-card" id="pr-card">
+        <div class="pr-icon" id="pr-icon"></div>
+        <h2 id="pr-title">Correcto</h2>
+        <p class="pr-answer" id="pr-answer"></p>
+        <p class="pr-expl" id="pr-expl"></p>
+        <p class="pr-team mono" id="pr-team"></p>
+      </div>
+    </section>
+
+    <!-- Dossier personal -->
+    <section class="p-screen" id="p-dossier">
+      <div class="dossier">
+        <span class="kicker">Tu dossier · privado</span>
+        <h2>Tu resultado</h2>
+        <div class="d-score"><span id="d-score">0</span><small id="d-total">/ 10</small></div>
+        <p class="muted" id="d-sub"></p>
+        <div class="d-section">
+          <h3>Por dominio</h3>
+          <div id="d-domains"></div>
+        </div>
+        <div class="d-section">
+          <h3>Calibración</h3>
+          <p id="d-calib"></p>
+        </div>
+        <div class="d-section" id="d-recos-wrap">
+          <h3>Para seguir aprendiendo</h3>
+          <ul id="d-recos"></ul>
+        </div>
+        <p class="d-foot">Solo tú ves este dossier. No hay ranking.</p>
+        <button class="btn btn-ghost hidden" id="d-back">Volver a mi código</button>
+      </div>
+    </section>
+
+    <!-- Fin -->
+    <section class="p-screen" id="p-ended">
+      <div class="p-center">
+        <span class="kicker">Sesión terminada</span>
+        <h2>La sala se cerró</h2>
+        <p class="muted">Gracias por participar.</p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/play.js"></script>
+</body>
+</html>

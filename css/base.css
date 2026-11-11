@@ -1,0 +1,247 @@
+/* ─────────────────────────────────────────────────────────────
+   SINAPSIS · Sistema visual base (tema claro corporativo)
+   Paleta de referencia HSBC — valida los valores con tu equipo de marca.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --red: #db0011;
+  --red-dark: #a8000b;
+  --red-tint: rgba(219, 0, 17, 0.08);
+  --red-tint-2: rgba(219, 0, 17, 0.16);
+  --ink: #1a1a1a;
+  --ink-2: #333333;
+  --gray: #575757;
+  --gray-2: #767676;
+  --gray-3: #9a9a9a;
+  --line: #d7d8d6;
+  --line-2: #e9e9e9;
+  --bg: #ffffff;
+  --bg-2: #f3f3f3;
+  --bg-3: #fafafa;
+
+  /* Colores de las 4 opciones (forma + letra + color) */
+  --opt-0: #db0011;
+  --opt-1: #1a1a1a;
+  --opt-2: #575757;
+  --opt-3: #ffffff;
+
+  --font: 'Univers Next for HSBC', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --display: 'Univers Next for HSBC', 'Inter Tight', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --radius: 6px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── Botones ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
+}
+.btn:hover {
+  background: var(--bg-2);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--red-dark);
+  border-color: var(--red-dark);
+}
+.btn-ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--gray);
+}
+.btn-ghost:hover {
+  background: var(--bg-2);
+  color: var(--ink);
+}
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* ── Campos ──────────────────────────────────────────────── */
+.field {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+}
+.field label {
+  font-size: 0.85rem;
+  color: var(--gray);
+  letter-spacing: 0.02em;
+}
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-size: 1.05rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--red-tint);
+}
+.error {
+  color: var(--red-dark);
+  font-size: 0.9rem;
+  min-height: 1.2em;
+}
+
+/* ── Etiquetas tipo "kicker" ─────────────────────────────── */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+.kicker::before {
+  content: '';
+  width: 28px;
+  height: 2px;
+  background: var(--red);
+}
+
+/* ── Formas de opción ────────────────────────────────────── */
+.shape {
+  flex: none;
+}
+.shape-0 { fill: var(--opt-0); }
+.shape-1 { fill: var(--opt-1); }
+.shape-2 { fill: var(--opt-2); }
+.shape-3 { fill: var(--opt-3); stroke: var(--ink); stroke-width: 2; }
+
+/* ── Esquina de marca (triángulos) ───────────────────────── */
+.brand-corner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: clamp(90px, 11vw, 200px);
+  height: auto;
+  pointer-events: none;
+  z-index: 2;
+}
+.brand-corner.bl {
+  top: auto;
+  right: auto;
+  bottom: 0;
+  left: 0;
+  transform: rotate(180deg);
+  width: clamp(50px, 6vw, 110px);
+}
+
+/* ── Texto con máscara ───────────────────────────────────── */
+.mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.08em;
+}
+.mask > span {
+  display: inline-block;
+  transform: translateY(110%);
+  transition: transform 1s var(--ease);
+}
+.in .mask > span,
+.mask.in > span {
+  transform: translateY(0);
+}
+
+/* ── Logo / wordmark ─────────────────────────────────────── */
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  font-size: 0.95rem;
+}
+.wordmark .dot {
+  width: 10px;
+  height: 10px;
+  background: var(--red);
+  transform: rotate(45deg);
+}
+.org-logo {
+  height: 28px;
+  width: auto;
+}
+
+/* ── Utilidades ──────────────────────────────────────────── */
+.muted { color: var(--gray); }
+.hidden { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

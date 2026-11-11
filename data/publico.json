@@ -1,0 +1,40 @@
+{
+  "app": "sinapsis",
+  "title": "SINAPSIS · Evaluación de IA",
+  "fp": 167,
+  "total": 10,
+  "qdomains": [
+    "Modelos",
+    "Agentes y workflows",
+    "Agentes y workflows",
+    "Agentes y workflows",
+    "Protocolos",
+    "Contexto",
+    "Modelos",
+    "Seguridad y gobierno",
+    "Contexto",
+    "Seguridad y gobierno"
+  ],
+  "recos": [
+    {
+      "label": "Modelos",
+      "text": "Taller de selección de modelos: capacidad, latencia y costo, y cuándo activar el razonamiento."
+    },
+    {
+      "label": "Agentes y workflows",
+      "text": "Taller de patrones: workflows frente a agentes autónomos y diseño de herramientas (tool use)."
+    },
+    {
+      "label": "Protocolos",
+      "text": "Introducción práctica a MCP y A2A con herramientas internas aprobadas."
+    },
+    {
+      "label": "Contexto",
+      "text": "Ingeniería de contexto: presupuesto de tokens, compactación, memoria externa y system prompts."
+    },
+    {
+      "label": "Seguridad y gobierno",
+      "text": "Prompt injection, mínimo privilegio, aprobación humana y clasificación de datos en herramientas de IA."
+    }
+  ]
+}

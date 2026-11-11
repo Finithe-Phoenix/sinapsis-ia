@@ -1,0 +1,11 @@
+{
+  "name": "sinapsis-ia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SINAPSIS · Evaluación de Inteligencia Artificial en tiempo real (sin ranking).",
+  "type": "module",
+  "scripts": {
+    "start": "node tools/servidor.mjs",
+    "cifrar": "node tools/cifrar.mjs"
+  }
+}

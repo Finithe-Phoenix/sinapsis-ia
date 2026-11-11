@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>SINAPSIS · Anfitrión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/host.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+</head>
+<body class="host" data-screen="unlock">
+  <canvas id="net" aria-hidden="true"></canvas>
+  <div class="sheen" aria-hidden="true"></div>
+  <svg class="brand-corner" viewBox="0 0 200 200" aria-hidden="true">
+    <polygon points="40,0 200,0 200,160" fill="#DB0011" />
+    <polygon points="120,0 200,0 200,80" fill="#A8000B" />
+  </svg>
+
+  <!-- Barra superior -->
+  <header class="hud" id="hud">
+    <div class="hud-left">
+      <img class="org-logo hidden" id="org-logo" alt="" />
+      <span class="wordmark"><span class="dot"></span><span id="hud-name">SINAPSIS</span></span>
+      <span class="hud-org" id="hud-org"></span>
+    </div>
+    <div class="hud-center" id="hud-progress" aria-label="Progreso"></div>
+    <div class="hud-right">
+      <span class="chip" id="hud-mode"></span>
+      <span class="chip chip-pin" id="hud-pin-chip">PIN <strong id="hud-pin">—</strong></span>
+      <button class="icon-btn" id="btn-mute" aria-label="Silenciar sonido" title="Sonido (M)">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path id="mute-waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-fs" aria-label="Pantalla completa" title="Pantalla completa (F)">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- 0 · Desbloqueo -->
+    <section class="screen active" id="s-unlock" aria-label="Consola del anfitrión">
+      <div class="unlock-card">
+        <span class="wordmark"><span class="dot"></span><span class="app-name">SINAPSIS</span></span>
+        <h1>Consola del anfitrión</h1>
+        <p class="muted">Desbloquea el banco de preguntas para abrir la sala.</p>
+        <form id="unlock-form" autocomplete="off">
+          <div class="field">
+            <label for="pass">Clave del banco</label>
+            <input id="pass" type="password" class="input" autocomplete="off" spellcheck="false" />
+          </div>
+          <div class="error" id="unlock-err" role="alert"></div>
+          <button class="btn btn-primary" type="submit" id="btn-unlock">Abrir sala</button>
+        </form>
+        <details class="alt-bank">
+          <summary>Usar otro banco de preguntas (.json)</summary>
+          <p class="muted small">Puedes cargar un banco sin cifrar (privado/banco.json) o uno cifrado con la herramienta de cifrado.</p>
+          <input type="file" accept=".json,application/json" id="bank-file" />
+          <div class="small" id="bank-file-info"></div>
+        </details>
+        <div class="unlock-foot">
+          <span class="chip" id="mode-info"></span>
+          <label class="check"><input type="checkbox" id="skip-intro" /> Omitir prólogo</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1 · Prólogo -->
+    <section class="screen" id="s-prologue" aria-label="Prólogo">
+      <div class="pro-stage">
+        <p class="pro-line" id="pro-line"></p>
+      </div>
+      <div class="title-card" id="title-card">
+        <div class="title-org" id="title-org"></div>
+        <h1 class="title-main" id="title-main">SINAPSIS</h1>
+        <div class="title-rule"></div>
+        <p class="title-sub" id="title-sub">Evaluación de Inteligencia Artificial</p>
+      </div>
+      <div class="skip-hint">Espacio para continuar</div>
+    </section>
+
+    <!-- 2 · Lobby -->
+    <section class="screen" id="s-lobby" aria-label="Sala de espera">
+      <div class="lobby-grid">
+        <div class="lobby-left">
+          <span class="kicker">Sala abierta</span>
+          <h1 class="lobby-title">Únete<br />a la red</h1>
+          <div class="join-card">
+            <div class="qr-card" id="qr-card"><div id="qr" class="qr"></div></div>
+            <div class="join-info">
+              <div class="pin-label" id="pin-label">PIN de la sala</div>
+              <div class="pin mono" id="pin"></div>
+              <div class="join-hint" id="join-hint"></div>
+            </div>
+          </div>
+          <ol class="steps">
+            <li><span class="step-n">1</span><span id="step-1">Escanea el código o entra a <strong id="join-url" class="mono"></strong></span></li>
+            <li><span class="step-n">2</span><span id="step-2">Ingresa el PIN <strong id="pin-inline" class="mono"></strong></span></li>
+            <li><span class="step-n">3</span><span id="step-3">Elige tu alias y espera el inicio</span></li>
+          </ol>
+          <p class="lobby-local hidden" id="lobby-local"></p>
+        </div>
+        <div class="lobby-stage">
+          <p class="stage-note">Sin ranking ni ganadores · mediremos lo que sabemos <em>como equipo</em></p>
+          <div class="stage-foot">
+            <div class="count" id="lobby-count"><span id="player-count">0</span><span class="count-label" id="count-label">nodos conectados</span></div>
+            <div class="lobby-actions">
+              <button class="btn btn-ghost" id="btn-bots" title="Atajo: B">+ Participantes de ensayo</button>
+              <button class="btn btn-primary" id="btn-start">Comenzar evaluación</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chips hidden" id="chips" aria-hidden="true"></div>
+    </section>
+
+    <!-- 3 · Capítulo -->
+    <section class="screen" id="s-chapter" aria-label="Capítulo">
+      <div class="chapter-big mono" id="ch-big">01</div>
+      <div class="chapter-wrap">
+        <div class="chapter-kicker" id="ch-kicker">Capítulo 01 de 10</div>
+        <h2 class="chapter-domain" id="ch-domain">Modelos</h2>
+        <div class="chapter-rule"></div>
+        <div class="chapter-level" id="ch-level">Intermedio</div>
+      </div>
+    </section>
+
+    <!-- 4 · Pregunta / Revelación -->
+    <section class="screen" id="s-question" aria-label="Pregunta">
+      <div class="q-ghost" id="q-ghost" aria-hidden="true">01</div>
+      <div class="q-top">
+        <span class="kicker" id="q-kicker">Capítulo 01 · Modelos</span>
+        <div class="timer" id="timer">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <circle class="track" cx="24" cy="24" r="21" />
+            <circle class="arc" id="timer-arc" cx="24" cy="24" r="21" />
+          </svg>
+          <span id="timer-num" class="mono">40</span>
+        </div>
+      </div>
+      <h2 class="q-text" id="q-text"></h2>
+      <div class="options" id="options"></div>
+      <div class="q-foot">
+        <div class="q-bottom" id="q-bottom">
+          <span class="mono" id="resp-count">0 / 0 respuestas</span>
+          <div class="resp-track">
+            <div class="resp-dots" id="resp-dots"></div>
+            <div class="resp-bar hidden"><div id="resp-fill"></div></div>
+          </div>
+          <span id="q-status">Responde desde tu celular</span>
+        </div>
+        <div class="debrief" id="debrief">
+          <div class="debrief-icon" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="debrief-head">
+              <span class="kicker">Debrief</span>
+              <span class="debrief-stat" id="debrief-stat"></span>
+            </div>
+            <p id="debrief-text"></p>
+          </div>
+        </div>
+      </div>
+      <div class="timebar"><div id="timebar-fill"></div></div>
+    </section>
+
+    <!-- 4b · Sincronización (modo sin conexión) -->
+    <section class="screen" id="s-sync" aria-label="Sincronización de resultados">
+      <div class="sync-grid">
+        <div>
+          <span class="kicker">Sincronización</span>
+          <h1 class="sync-title">Envía tu código de resultados</h1>
+          <ol class="steps">
+            <li><span class="step-n">1</span><span>En tu dispositivo aparece un código como <strong class="mono">SNP-7K2Q-M9XA-3F0D-1A</strong></span></li>
+            <li><span class="step-n">2</span><span>Toca <strong>Copiar mensaje</strong> y pégalo en el chat de la reunión</span></li>
+            <li><span class="step-n">3</span><span>Cuando todos lo envíen, generaremos el informe del equipo</span></li>
+          </ol>
+          <p class="lobby-note">El código solo contiene tus respuestas y tu alias. No hay ranking.</p>
+        </div>
+        <div class="sync-side">
+          <div class="sync-count"><span id="sync-count">0</span><span class="count-label">nodos sincronizados</span></div>
+          <div class="chips sync-chips" id="sync-chips" aria-live="polite"></div>
+          <div class="sync-actions">
+            <button class="btn" id="btn-paste">Pegar códigos del chat</button>
+            <button class="btn btn-primary" id="btn-report">Generar informe</button>
+          </div>
+          <p class="small muted" id="sync-msg"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · Informe (1/2) -->
+    <section class="screen report" id="s-report1" aria-label="Informe del equipo">
+      <div class="report-head">
+        <span class="kicker">Informe de inteligencia colectiva · 1 / 2</span>
+        <h2>Lo que sabemos como equipo</h2>
+      </div>
+      <div class="r1-grid">
+        <div class="panel index-panel">
+          <div class="panel-label">Índice de conocimiento del equipo</div>
+          <div class="gauge">
+            <svg viewBox="0 0 220 220" aria-hidden="true">
+              <circle class="g-track" cx="110" cy="110" r="96" />
+              <circle class="g-ticks" cx="110" cy="110" r="106" />
+              <circle class="g-arc" id="g-arc" cx="110" cy="110" r="96" />
+            </svg>
+            <div class="index-num"><span id="team-index">0</span><small>de 100</small></div>
+          </div>
+          <div class="index-sub" id="index-sub"></div>
+          <div class="mini-stats" id="mini-stats"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-label">Dominio por área</div>
+          <div id="radar" class="chart"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-label">Matriz de calibración <span class="panel-hint">confianza vs. acierto</span></div>
+          <div id="calib"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 · Informe (2/2) -->
+    <section class="screen report" id="s-report2" aria-label="Detalle del informe">
+      <div class="report-head">
+        <span class="kicker">Informe de inteligencia colectiva · 2 / 2</span>
+        <h2>Dónde enfocar la capacitación</h2>
+      </div>
+      <div class="r2-grid">
+        <div class="panel span-2">
+          <div class="panel-label">Acierto por pregunta <span class="panel-hint">línea punteada = meta 70%</span></div>
+          <div id="qbars" class="chart"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-label">Distribución de puntajes</div>
+          <div id="histo" class="chart"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-label">Confusiones más frecuentes</div>
+          <div id="miscon"></div>
+        </div>
+        <div class="panel span-2">
+          <div class="panel-label">Recomendaciones de capacitación</div>
+          <div id="recos"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 · Créditos -->
+    <section class="screen" id="s-credits" aria-label="Créditos">
+      <div class="credits-roll" id="credits-roll"></div>
+      <div class="credits-end" id="credits-end">
+        <span class="wordmark"><span class="dot"></span><span class="app-name">SINAPSIS</span></span>
+        <h2>Gracias</h2>
+        <p>Seguimos aprendiendo juntos.</p>
+        <div class="dossier-key hidden" id="dossier-key">
+          <div id="key-qr" class="key-qr"></div>
+          <div>
+            <div class="pin-label">Clave para desbloquear tu dossier</div>
+            <div class="key-text mono" id="key-text"></div>
+            <div class="small muted">Escríbela en tu dispositivo, en «Desbloquear mi dossier».</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Herramientas del informe -->
+  <div class="report-tools" id="report-tools">
+    <button class="btn btn-ghost hidden" id="btn-add-codes">Agregar códigos</button>
+    <button class="btn btn-ghost" id="exp-people">Exportar participantes (CSV)</button>
+    <button class="btn btn-ghost" id="exp-questions">Exportar preguntas (CSV)</button>
+    <button class="btn btn-ghost" id="exp-json">Exportar todo (JSON)</button>
+    <button class="btn btn-ghost" id="btn-close-room">Cerrar sala</button>
+  </div>
+
+  <dialog class="paste-dialog" id="paste-dialog">
+    <form method="dialog" id="paste-form">
+      <h3>Pegar códigos</h3>
+      <p class="small muted">Copia los mensajes del chat (puedes seleccionar todo) y pégalos aquí. Se detectan los códigos y se ignoran los duplicados.</p>
+      <textarea id="paste-text" rows="10" spellcheck="false" placeholder="SINAPSIS · Nodo Prisma 42 · SNP-7K2Q-M9XA-3F0D-1A"></textarea>
+      <div class="dialog-actions">
+        <button class="btn btn-ghost" value="cancel" formnovalidate>Cancelar</button>
+        <button class="btn btn-primary" id="paste-ok" value="ok">Agregar códigos</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="wipe" id="wipe" aria-hidden="true"><div class="wipe-a"></div><div class="wipe-b"></div></div>
+  <div class="toast" id="toast" role="status"></div>
+  <footer class="keys" id="keys">Espacio / → continuar · M sonido · F pantalla completa</footer>
+
+  <script type="module" src="js/host.js"></script>
+</body>
+</html>
