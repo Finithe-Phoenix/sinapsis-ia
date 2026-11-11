@@ -207,12 +207,16 @@ body.play {
 
 /* Pregunta */
 .pq-head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.85rem;
   color: var(--gray);
-  padding-top: 4px;
+  padding: 6px 0;
+  background: var(--bg);
 }
 .pq-timer {
   font-size: 1.1rem;
@@ -234,28 +238,28 @@ body.play {
   transform-origin: left;
 }
 .pq-text {
-  margin: 0 0 18px;
-  font-size: 1.12rem;
+  margin: 0 0 14px;
+  font-size: 1.08rem;
   font-weight: 500;
   line-height: 1.4;
 }
 .pq-options {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   margin-top: auto;
 }
 .pq-opt {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   text-align: left;
-  padding: 16px 16px;
-  min-height: 64px;
+  padding: 12px 14px;
+  min-height: 56px;
   border-radius: var(--radius);
   border: 1px solid transparent;
-  font-size: 0.98rem;
-  line-height: 1.3;
+  font-size: 0.94rem;
+  line-height: 1.28;
   transition: transform 0.12s, opacity 0.3s;
   animation: pIn 0.5s var(--ease) both;
 }

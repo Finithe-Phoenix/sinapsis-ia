@@ -21,6 +21,8 @@
   </svg>
 
   <!-- Barra superior -->
+  <!-- Escenario 16:9 de 1280×720 que se escala para caber en cualquier ventana o proyector -->
+  <div class="stage" id="stage">
   <header class="hud" id="hud">
     <div class="hud-left">
       <img class="org-logo hidden" id="org-logo" alt="" />
@@ -277,6 +279,8 @@
     <button class="btn btn-ghost" id="exp-json">Exportar todo (JSON)</button>
     <button class="btn btn-ghost" id="btn-close-room">Cerrar sala</button>
   </div>
+  <footer class="keys" id="keys">Espacio / → continuar · M sonido · F pantalla completa</footer>
+  </div>
 
   <dialog class="paste-dialog" id="paste-dialog">
     <form method="dialog" id="paste-form">
@@ -292,7 +296,6 @@
 
   <div class="wipe" id="wipe" aria-hidden="true"><div class="wipe-a"></div><div class="wipe-b"></div></div>
   <div class="toast" id="toast" role="status"></div>
-  <footer class="keys" id="keys">Espacio / → continuar · M sonido · F pantalla completa</footer>
 
   <script type="module" src="js/host.js"></script>
 </body>

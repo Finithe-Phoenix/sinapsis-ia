@@ -13,6 +13,16 @@ import { $, $$, sleep, esc, shapeSvg, LETTERS, pct, countUp, download, randomAli
 
 const net = new Network($('#net'));
 const sound = new Sound();
+
+// Escala el escenario de 1280×720 para que quepa completo en cualquier ventana
+const STAGE_W = 1280;
+const STAGE_H = 720;
+function fitStage() {
+  const s = Math.min(innerWidth / STAGE_W, innerHeight / STAGE_H);
+  $('#stage').style.setProperty('--s', String(s));
+}
+window.addEventListener('resize', fitStage);
+fitStage();
 const ANON = CONFIG.identity === 'anonimo';
 
 const S = {
@@ -768,7 +778,7 @@ function renderReport(stats) {
   $('#histo').innerHTML = histogramSvg(stats.histogram);
   $('#miscon').innerHTML = stats.misconceptions.length
     ? `<ul class="mlist">${stats.misconceptions
-        .map((m) => `<li><span class="share">${pct(m.share)}</span><span class="q">P${m.i + 1} · eligió ${m.letter}</span><span>${esc(m.text)}</span></li>`)
+        .map((m) => `<li><span class="share">${pct(m.share)}</span><span class="mtext"><span class="q">P${m.i + 1} · eligió ${m.letter}</span>${esc(m.text)}</span></li>`)
         .join('')}</ul>`
     : '<p class="empty">No hubo una opción incorrecta dominante. Buena señal.</p>';
   $('#recos').innerHTML = stats.recommendations.length
@@ -857,7 +867,7 @@ async function showCredits() {
     stageCenter({ rays: true });
   });
   await nextFrame();
-  const dist = roll.offsetHeight + innerHeight;
+  const dist = roll.offsetHeight + STAGE_H;
   const secs = clamp(dist / 70, 10, 60);
   roll.style.transition = `transform ${secs}s linear`;
   roll.style.transform = `translateY(-${dist}px)`;
