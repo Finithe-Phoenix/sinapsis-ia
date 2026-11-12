@@ -26,12 +26,12 @@ Requisito: [Node.js](https://nodejs.org) 18 o superior en la laptop del anfitri�
    1) Abre la consola del anfitrión:   http://localhost:8080/host.html
    2) Comparte este link con tu equipo: http://10.20.30.40:8080
    ```
-2. Se abre la consola del anfitrión. Escribe la **clave del banco** (está en `privado/clave.txt`) y pulsa **Abrir sala**.
+2. Se abre la consola del anfitrión. Escribe la **clave de la sesión** (está en `privado/clave.txt`) y pulsa **Comenzar**.
 3. **Comparte el link** (por ejemplo `http://10.20.30.40:8080`) en el chat, o deja que escaneen el QR del lobby.
    - Cada persona abre el link, **escribe su nombre** y toca **Entrar**. No hay PIN ni configuración: la sala se encuentra sola.
    - Su nombre aparece en la constelación del lobby.
 4. Avanza con **Espacio** o **→**. Las respuestas llegan en tiempo real, en cada revelación se ve la distribución del equipo y al final cada quien ve su dossier.
-5. En el informe exporta los resultados (CSV o JSON) y pulsa **Cerrar sala**.
+5. En el informe, mueve el mouse para ver los botones de descarga (Excel o respaldo completo) y pulsa **Cerrar sala**.
 
 > ⚠️ **`localhost` solo funciona en tu laptop.** A tu equipo comparte siempre el link con la IP que muestran la consola y el lobby.
 
@@ -46,7 +46,9 @@ Requisito: [Node.js](https://nodejs.org) 18 o superior en la laptop del anfitri�
 | F | Pantalla completa |
 | B | Agregar participantes de ensayo (en el lobby) |
 
-**Ensayo:** en el lobby pulsa **+ Participantes de ensayo** para simular 24 personas y ver el informe completo antes de la sesión real.
+Los botones del anfitrión (sonido, pantalla completa, simular participantes y descargas del informe) **aparecen solo al mover el mouse**, para que la pantalla proyectada se vea limpia.
+
+**Ensayo:** en el lobby pulsa **B** (o mueve el mouse y elige **Simular participantes**) para simular 24 personas y ver el informe completo antes de la sesión real.
 
 ---
 
@@ -87,7 +89,7 @@ El banco que se publica está **cifrado** (`data/banco.enc.json`, AES-GCM 256): 
    node tools/empaquetar.mjs
    ```
 
-También puedes abrir `http://localhost:8080/tools/cifrar.html` para editar y cifrar desde el navegador, o cargar `privado/banco.json` directamente en la consola del anfitrión, en *Usar otro banco de preguntas*.
+También puedes abrir `http://localhost:8080/tools/cifrar.html` para editar y cifrar desde el navegador, o arrastrar `privado/banco.json` sobre la pantalla de inicio de la consola para usarlo directamente.
 
 ---
 

@@ -853,7 +853,7 @@ body.play {
       </div>
       <form id="join-form" class="p-form" autocomplete="off">
         <div class="field" id="pin-field">
-          <label for="pin">PIN de la sala</label>
+          <label for="pin">Código de sala</label>
           <input id="pin" class="input mono pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="000000" />
         </div>
         <div class="field" id="alias-field">
@@ -864,7 +864,7 @@ body.play {
               <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>
             </button>
           </div>
-          <span class="hint" id="alias-hint">Usa un alias: no escribas tu número de empleado ni tu correo.</span>
+          <span class="hint" id="alias-hint">Así aparecerás en la pantalla principal.</span>
         </div>
         <div class="error" id="join-err" role="alert"></div>
         <button class="btn btn-primary btn-block" id="btn-join" type="submit">Entrar</button>
@@ -1620,7 +1620,7 @@ async function init() {
     $('#alias-label').textContent = 'Tu nombre';
     aliasInput.placeholder = 'Nombre';
     $('#dice').classList.add('hidden');
-    $('#alias-hint').textContent = 'Solo tu nombre de pila. No escribas tu número de empleado ni tu correo.';
+    $('#alias-hint').textContent = 'Así aparecerás en la pantalla principal.';
   } else {
     aliasInput.value = randomAlias();
   }
@@ -1646,14 +1646,14 @@ async function init() {
     if (pinInput.value.length !== 6) {
       $('#pin-field').classList.add('hidden');
       btn.disabled = true;
-      btn.textContent = 'Buscando la sala…';
+      btn.textContent = 'Conectando…';
       const found = await P.transport.discover();
       btn.disabled = false;
       btn.textContent = 'Entrar';
       if (found) pinInput.value = found;
       else {
         $('#pin-field').classList.remove('hidden');
-        $('#join-err').textContent = 'La sala aún no está abierta. Recarga la página en un momento o escribe el PIN de la pantalla principal.';
+        $('#join-err').textContent = 'La sesión aún no ha comenzado. Recarga la página en un momento.';
       }
     } else {
       $('#pin-field').classList.add('hidden');
@@ -1668,7 +1668,7 @@ async function init() {
     try {
       P.pub = await loadPublic();
     } catch {
-      $('#join-err').textContent = 'No se encontraron los datos de la evaluación. Pide al anfitrión el archivo o la dirección correcta.';
+      $('#join-err').textContent = 'No pudimos cargar la evaluación. Pide al anfitrión el enlace correcto.';
       btn.disabled = true;
       return;
     }
@@ -1702,7 +1702,7 @@ function validAlias(alias) {
     return false;
   }
   if (/@|\d{5,}/.test(alias)) {
-    err.textContent = 'Por privacidad, no uses correos ni números largos en tu alias.';
+    err.textContent = 'Escribe solo tu nombre.';
     return false;
   }
   return true;
@@ -1715,7 +1715,7 @@ async function joinRed(pin, alias, { silent = false } = {}) {
   const err = $('#join-err');
   const btn = $('#btn-join');
   if (!/^\d{6}$/.test(pin)) {
-    err.textContent = 'El PIN tiene 6 dígitos.';
+    err.textContent = 'El código de sala tiene 6 dígitos.';
     return;
   }
   btn.disabled = true;
@@ -1736,8 +1736,8 @@ async function joinRed(pin, alias, { silent = false } = {}) {
     const m = String(e?.message || e);
     err.textContent =
       m === 'no-room'
-        ? 'No encontramos esa sala. Revisa el PIN que aparece en la pantalla principal.'
-        : 'No se pudo conectar con la laptop del anfitrión. Revisa que estés en la misma red.';
+        ? 'No encontramos esa sala. Revisa el código en la pantalla principal.'
+        : 'No pudimos conectarte. Revisa tu conexión e inténtalo de nuevo.';
     if (silent) store.del(meKey(pin));
   } finally {
     btn.disabled = false;

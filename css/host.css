@@ -418,7 +418,40 @@ body:not([data-screen='lobby']) .keys {
   word-break: break-all;
 }
 .join-hint:empty,
-.pin:empty { display: none; }
+.pin:empty,
+.join-code:empty { display: none; }
+.join-big {
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.join-code {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: var(--gray);
+  letter-spacing: 0.04em;
+}
+
+/* Indicador «En vivo» */
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.live .led { width: 7px; height: 7px; border-radius: 50%; background: var(--red); animation: led 2s infinite; }
 .steps {
   list-style: none;
   padding: 0;
@@ -1002,8 +1035,12 @@ body:not([data-screen='lobby']) .keys {
   pointer-events: none;
   transition: opacity 0.6s;
 }
-body[data-screen='report1'] .report-tools,
-body[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
+body.pointer[data-screen='report1'] .report-tools,
+body.pointer[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
+
+/* Controles del anfitrión: aparecen solo al mover el mouse */
+.host-only:not(.report-tools) { opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+body.pointer .host-only:not(.report-tools) { opacity: 1; pointer-events: auto; }
 .report-tools .btn { padding: 8px 14px; font-size: 0.8rem; background: rgba(255, 255, 255, 0.9); }
 
 /* Animación de gráficas */

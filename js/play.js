@@ -80,7 +80,7 @@ async function init() {
     $('#alias-label').textContent = 'Tu nombre';
     aliasInput.placeholder = 'Nombre';
     $('#dice').classList.add('hidden');
-    $('#alias-hint').textContent = 'Solo tu nombre de pila. No escribas tu número de empleado ni tu correo.';
+    $('#alias-hint').textContent = 'Así aparecerás en la pantalla principal.';
   } else {
     aliasInput.value = randomAlias();
   }
@@ -106,14 +106,14 @@ async function init() {
     if (pinInput.value.length !== 6) {
       $('#pin-field').classList.add('hidden');
       btn.disabled = true;
-      btn.textContent = 'Buscando la sala…';
+      btn.textContent = 'Conectando…';
       const found = await P.transport.discover();
       btn.disabled = false;
       btn.textContent = 'Entrar';
       if (found) pinInput.value = found;
       else {
         $('#pin-field').classList.remove('hidden');
-        $('#join-err').textContent = 'La sala aún no está abierta. Recarga la página en un momento o escribe el PIN de la pantalla principal.';
+        $('#join-err').textContent = 'La sesión aún no ha comenzado. Recarga la página en un momento.';
       }
     } else {
       $('#pin-field').classList.add('hidden');
@@ -128,7 +128,7 @@ async function init() {
     try {
       P.pub = await loadPublic();
     } catch {
-      $('#join-err').textContent = 'No se encontraron los datos de la evaluación. Pide al anfitrión el archivo o la dirección correcta.';
+      $('#join-err').textContent = 'No pudimos cargar la evaluación. Pide al anfitrión el enlace correcto.';
       btn.disabled = true;
       return;
     }
@@ -162,7 +162,7 @@ function validAlias(alias) {
     return false;
   }
   if (/@|\d{5,}/.test(alias)) {
-    err.textContent = 'Por privacidad, no uses correos ni números largos en tu alias.';
+    err.textContent = 'Escribe solo tu nombre.';
     return false;
   }
   return true;
@@ -175,7 +175,7 @@ async function joinRed(pin, alias, { silent = false } = {}) {
   const err = $('#join-err');
   const btn = $('#btn-join');
   if (!/^\d{6}$/.test(pin)) {
-    err.textContent = 'El PIN tiene 6 dígitos.';
+    err.textContent = 'El código de sala tiene 6 dígitos.';
     return;
   }
   btn.disabled = true;
@@ -196,8 +196,8 @@ async function joinRed(pin, alias, { silent = false } = {}) {
     const m = String(e?.message || e);
     err.textContent =
       m === 'no-room'
-        ? 'No encontramos esa sala. Revisa el PIN que aparece en la pantalla principal.'
-        : 'No se pudo conectar con la laptop del anfitrión. Revisa que estés en la misma red.';
+        ? 'No encontramos esa sala. Revisa el código en la pantalla principal.'
+        : 'No pudimos conectarte. Revisa tu conexión e inténtalo de nuevo.';
     if (silent) store.del(meKey(pin));
   } finally {
     btn.disabled = false;

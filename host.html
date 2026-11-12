@@ -31,12 +31,11 @@
     </div>
     <div class="hud-center" id="hud-progress" aria-label="Progreso"></div>
     <div class="hud-right">
-      <span class="chip" id="hud-mode"></span>
-      <span class="chip chip-pin" id="hud-pin-chip">PIN <strong id="hud-pin">—</strong></span>
-      <button class="icon-btn" id="btn-mute" aria-label="Silenciar sonido" title="Sonido (M)">
+      <span class="live hidden" id="hud-live"><span class="led on"></span>En vivo</span>
+      <button class="icon-btn host-only" id="btn-mute" aria-label="Silenciar sonido" title="Sonido (M)">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path id="mute-waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
-      <button class="icon-btn" id="btn-fs" aria-label="Pantalla completa" title="Pantalla completa (F)">
+      <button class="icon-btn host-only" id="btn-fs" aria-label="Pantalla completa" title="Pantalla completa (F)">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
     </div>
@@ -44,28 +43,22 @@
 
   <main>
     <!-- 0 · Desbloqueo -->
-    <section class="screen active" id="s-unlock" aria-label="Consola del anfitrión">
+    <section class="screen active" id="s-unlock" aria-label="Abrir la sesión">
       <div class="unlock-card">
         <span class="wordmark"><span class="dot"></span><span class="app-name">SINAPSIS</span></span>
-        <h1>Consola del anfitrión</h1>
-        <p class="muted">Desbloquea el banco de preguntas para abrir la sala.</p>
+        <h1>Abrir la sesión</h1>
+        <p class="muted">Ingresa la clave de la sesión para comenzar.</p>
         <form id="unlock-form" autocomplete="off">
           <div class="field">
-            <label for="pass">Clave del banco</label>
+            <label for="pass">Clave de la sesión</label>
             <input id="pass" type="password" class="input" autocomplete="off" spellcheck="false" />
           </div>
           <div class="error" id="unlock-err" role="alert"></div>
-          <button class="btn btn-primary" type="submit" id="btn-unlock">Abrir sala</button>
+          <button class="btn btn-primary" type="submit" id="btn-unlock">Comenzar</button>
         </form>
-        <details class="alt-bank">
-          <summary>Usar otro banco de preguntas (.json)</summary>
-          <p class="muted small">Puedes cargar un banco sin cifrar (privado/banco.json) o uno cifrado con la herramienta de cifrado.</p>
-          <input type="file" accept=".json,application/json" id="bank-file" />
-          <div class="small" id="bank-file-info"></div>
-        </details>
+        <div class="small muted" id="bank-file-info"></div>
         <div class="unlock-foot">
-          <span class="chip" id="mode-info"></span>
-          <label class="check"><input type="checkbox" id="skip-intro" /> Omitir prólogo</label>
+          <label class="check"><input type="checkbox" id="skip-intro" /> Omitir la introducción</label>
         </div>
       </div>
     </section>
@@ -81,7 +74,6 @@
         <div class="title-rule"></div>
         <p class="title-sub" id="title-sub">Evaluación de Inteligencia Artificial</p>
       </div>
-      <div class="skip-hint">Espacio para continuar</div>
     </section>
 
     <!-- 2 · Lobby -->
@@ -93,24 +85,23 @@
           <div class="join-card">
             <div class="qr-card" id="qr-card"><div id="qr" class="qr"></div></div>
             <div class="join-info">
-              <div class="pin-label" id="pin-label">PIN de la sala</div>
-              <div class="pin mono" id="pin"></div>
-              <div class="join-hint" id="join-hint"></div>
+              <div class="pin-label" id="pin-label">Únete en</div>
+              <div class="join-big" id="join-big"></div>
+              <div class="join-code" id="join-code"></div>
             </div>
           </div>
           <ol class="steps">
-            <li><span class="step-n">1</span><span id="step-1">Escanea el código o entra a <strong id="join-url" class="mono"></strong></span></li>
-            <li><span class="step-n">2</span><span id="step-2">Ingresa el PIN <strong id="pin-inline" class="mono"></strong></span></li>
-            <li><span class="step-n">3</span><span id="step-3">Elige tu alias y espera el inicio</span></li>
+            <li><span class="step-n">1</span><span id="step-1">Escanea el código con tu celular</span></li>
+            <li><span class="step-n">2</span><span id="step-2">O abre el enlace en tu laptop</span></li>
+            <li><span class="step-n">3</span><span id="step-3">Escribe tu nombre y espera el inicio</span></li>
           </ol>
-          <p class="lobby-local hidden" id="lobby-local"></p>
         </div>
         <div class="lobby-stage">
           <p class="stage-note">Sin ranking ni ganadores · mediremos lo que sabemos <em>como equipo</em></p>
           <div class="stage-foot">
-            <div class="count" id="lobby-count"><span id="player-count">0</span><span class="count-label" id="count-label">nodos conectados</span></div>
+            <div class="count" id="lobby-count"><span id="player-count">0</span><span class="count-label" id="count-label">participantes conectados</span></div>
             <div class="lobby-actions">
-              <button class="btn btn-ghost" id="btn-bots" title="Atajo: B">+ Participantes de ensayo</button>
+              <button class="btn btn-ghost host-only" id="btn-bots">Simular participantes</button>
               <button class="btn btn-primary" id="btn-start">Comenzar evaluación</button>
             </div>
           </div>
@@ -181,10 +172,10 @@
             <li><span class="step-n">2</span><span>Toca <strong>Copiar mensaje</strong> y pégalo en el chat de la reunión</span></li>
             <li><span class="step-n">3</span><span>Cuando todos lo envíen, generaremos el informe del equipo</span></li>
           </ol>
-          <p class="lobby-note">El código solo contiene tus respuestas y tu alias. No hay ranking.</p>
+          <p class="lobby-note">El código solo contiene tus respuestas y tu nombre. No hay ranking.</p>
         </div>
         <div class="sync-side">
-          <div class="sync-count"><span id="sync-count">0</span><span class="count-label">nodos sincronizados</span></div>
+          <div class="sync-count"><span id="sync-count">0</span><span class="count-label">resultados recibidos</span></div>
           <div class="chips sync-chips" id="sync-chips" aria-live="polite"></div>
           <div class="sync-actions">
             <button class="btn" id="btn-paste">Pegar códigos del chat</button>
@@ -272,14 +263,13 @@
   </main>
 
   <!-- Herramientas del informe -->
-  <div class="report-tools" id="report-tools">
+  <div class="report-tools host-only" id="report-tools">
     <button class="btn btn-ghost hidden" id="btn-add-codes">Agregar códigos</button>
-    <button class="btn btn-ghost" id="exp-people">Exportar participantes (CSV)</button>
-    <button class="btn btn-ghost" id="exp-questions">Exportar preguntas (CSV)</button>
-    <button class="btn btn-ghost" id="exp-json">Exportar todo (JSON)</button>
+    <button class="btn btn-ghost" id="exp-people">Descargar participantes (Excel)</button>
+    <button class="btn btn-ghost" id="exp-questions">Descargar preguntas (Excel)</button>
+    <button class="btn btn-ghost" id="exp-json">Descargar respaldo completo</button>
     <button class="btn btn-ghost" id="btn-close-room">Cerrar sala</button>
   </div>
-  <footer class="keys" id="keys">Espacio / → continuar · M sonido · F pantalla completa</footer>
   </div>
 
   <dialog class="paste-dialog" id="paste-dialog">

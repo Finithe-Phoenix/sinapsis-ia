@@ -132,38 +132,50 @@ async function initStatic() {
   net.addCore();
   net.bloom(26, 1600);
   $('#pass').focus();
-  $('#mode-info').innerHTML = '<span class="led"></span>Detectando conexión…';
   const det = await detectMode();
   S.mode = det.mode;
   S.modeInfo = det.info;
-  const mode = OFFLINE()
-    ? '<span class="led"></span>Sin conexión · códigos'
-    : '<span class="led on"></span>En vivo · red local';
-  $('#mode-info').innerHTML = mode;
-  $('#hud-mode').innerHTML = mode;
+  $('#hud-live').classList.toggle('hidden', OFFLINE());
 }
 
-// ── Desbloqueo del banco ─────────────────────────────────────
-$('#bank-file').addEventListener('change', async (e) => {
-  const file = e.target.files?.[0];
+// ── Preguntas alternativas (avanzado) ────────────────────────
+// Para usar otras preguntas, arrastra su archivo sobre la pantalla de inicio.
+async function loadBankFile(file) {
   const info = $('#bank-file-info');
-  if (!file) return;
   try {
     const obj = JSON.parse(await file.text());
     if (obj.app === 'sinapsis' && obj.data) {
       S.pendingPayload = obj;
       S.bank = null;
-      info.textContent = 'Banco cifrado cargado. Escribe su clave arriba.';
+      info.textContent = 'Preguntas cargadas. Escribe su clave para comenzar.';
     } else {
       const problems = validateBank(obj);
       if (problems.length) throw new Error(problems[0]);
       S.bank = obj;
       S.pendingPayload = null;
-      info.textContent = `Banco sin cifrar cargado: ${obj.questions.length} preguntas. No necesitas clave.`;
+      info.textContent = `Preguntas cargadas (${obj.questions.length}). Pulsa «Comenzar».`;
     }
-  } catch (err) {
-    info.textContent = `No se pudo leer el archivo: ${err.message}`;
+  } catch {
+    info.textContent = 'Ese archivo no contiene preguntas válidas.';
   }
+}
+window.addEventListener('dragover', (e) => {
+  if (S.screen === 'unlock') e.preventDefault();
+});
+window.addEventListener('drop', (e) => {
+  if (S.screen !== 'unlock') return;
+  e.preventDefault();
+  const file = e.dataTransfer?.files?.[0];
+  if (file) loadBankFile(file);
+});
+
+// Los controles del anfitrión solo aparecen al mover el mouse,
+// para que la pantalla proyectada se vea limpia.
+let pointerTimer;
+window.addEventListener('pointermove', () => {
+  document.body.classList.add('pointer');
+  clearTimeout(pointerTimer);
+  pointerTimer = setTimeout(() => document.body.classList.remove('pointer'), 2500);
 });
 
 $('#unlock-form').addEventListener('submit', async (e) => {
@@ -178,11 +190,11 @@ $('#unlock-form').addEventListener('submit', async (e) => {
     await ready;
     if (!S.bank) {
       const pass = $('#pass').value;
-      if (!pass) throw new Error('Escribe la clave del banco.');
+      if (!pass) throw new Error('Escribe la clave de la sesión.');
       let payload = S.pendingPayload || window.SINAPSIS_BANCO;
       if (!payload) {
         const res = await fetch(CONFIG.bankUrl, { cache: 'no-store' });
-        if (!res.ok) throw new Error(`No se encontró el banco cifrado (${CONFIG.bankUrl}).`);
+        if (!res.ok) throw new Error('No se pudo cargar el contenido de la sesión.');
         payload = await res.json();
       }
       S.bank = await decryptBank(payload, pass);
@@ -196,14 +208,15 @@ $('#unlock-form').addEventListener('submit', async (e) => {
   } catch (err) {
     errEl.textContent = friendlyError(err);
     btn.disabled = false;
-    btn.textContent = 'Abrir sala';
+    btn.textContent = 'Comenzar';
   }
 });
 
 function friendlyError(err) {
   const m = String(err?.message || err);
-  if (m === 'sin-servidor') return 'No se pudo conectar con el servidor local. Reinicia tools/servidor.mjs o usa el modo sin conexión.';
-  if (/Failed to fetch|NetworkError/i.test(m)) return 'No se pudo leer un archivo de la app. Si abriste la página directamente desde el disco, usa los archivos de la carpeta dist/.';
+  if (m === 'sin-servidor') return 'No se pudo iniciar la sala. Cierra SINAPSIS y vuelve a abrirlo.';
+  if (/Failed to fetch|NetworkError/i.test(m)) return 'No se pudo cargar el contenido de la sesión.';
+  if (/^Pregunta \d+:|^Falta|no es un objeto/.test(m)) return 'El contenido de la sesión no es válido.';
   return m;
 }
 
@@ -263,34 +276,24 @@ function participantUrl() {
 function setupLobby() {
   const url = participantUrl();
   // En red local basta con la raíz (redirige al participante y encuentra la sala sola)
-  const shown = !url ? CONFIG.participantFile : OFFLINE() ? `${url.host}${url.pathname}` : `http://${url.host}`;
-  const identityStep = ANON ? 'Entra sin nombre (participación anónima)' : CONFIG.identity === 'nombre' ? 'Escribe tu nombre' : 'Elige tu alias';
-  $('#hud-pin').textContent = S.pin || '—';
-  $('#hud-pin-chip').classList.toggle('hidden', OFFLINE());
+  const shown = !url ? CONFIG.participantFile : OFFLINE() ? `${url.host}${url.pathname}` : url.host;
+  const identityStep = ANON ? 'Entra' : CONFIG.identity === 'nombre' ? 'Escribe tu nombre' : 'Elige tu alias';
   const qr = $('#qr');
-  $('#join-hint').textContent = shown;
+  $('#join-big').textContent = shown;
+  $('#join-code').textContent = OFFLINE() ? '' : `Código de sala · ${S.pin}`;
+  $('#pin-label').textContent = url ? 'Únete en' : 'Abre el archivo';
+  $('#qr-card').classList.toggle('hidden', !url);
   if (OFFLINE()) {
-    $('#step-1').textContent = url ? 'Escanea el código o abre la dirección de la tarjeta' : 'Abre el archivo que compartimos en el chat';
+    $('#step-1').textContent = url ? 'Escanea el código o abre el enlace' : 'Ábrelo desde el chat de la reunión';
     $('#step-2').textContent = `${identityStep} y toca «Comenzar»`;
     $('#step-3').textContent = 'Sigue esta pantalla y responde en tu dispositivo';
-    $('#lobby-local').innerHTML = 'Modo sin conexión: al final, cada persona enviará un <strong>código de resultados</strong> por el chat y con él se genera el informe del equipo.';
-    $('#lobby-local').classList.remove('hidden');
-    $('#pin-label').textContent = url ? 'Página del participante' : 'Archivo del participante';
-    $('#pin').textContent = '';
-    $('#qr-card').classList.toggle('hidden', !url);
-    $('#count-label').textContent = 'participantes de ensayo';
     $('#lobby-count').classList.add('hidden');
-    if (url && !drawQr(qr, url.href)) qr.innerHTML = `<p class="qr-fallback">${esc(shown)}</p>`;
   } else {
     $('#step-1').textContent = 'Escanea el código con tu celular';
-    $('#step-2').innerHTML = `O abre <strong class="mono">${esc(shown)}</strong> en tu laptop`;
+    $('#step-2').textContent = 'O abre el enlace en tu laptop';
     $('#step-3').textContent = `${identityStep} y espera el inicio`;
-    $('#pin-label').textContent = 'PIN de la sala';
-    $('#pin').textContent = S.pin;
-    $('#lobby-local').innerHTML = 'En vivo por red local: los dispositivos deben estar en la misma red que esta laptop.';
-    $('#lobby-local').classList.remove('hidden');
-    if (!drawQr(qr, url.href)) qr.innerHTML = `<p class="qr-fallback">Entra a<br><strong>${esc(shown)}</strong></p>`;
   }
+  if (url && !drawQr(qr, url.href)) qr.innerHTML = `<p class="qr-fallback">${esc(shown)}</p>`;
 }
 
 // Escena de la red según la pantalla: constelación con nombres en el lobby
@@ -369,7 +372,7 @@ function addBots(n = 24) {
   // Escalonar la llegada visual
   const ids = Object.keys(S.bots.players).filter((id) => !S.seen.has(id));
   ids.forEach((id, k) => setTimeout(() => onPlayersChanged(), k * 120));
-  toast(`${n} participantes de ensayo agregados`);
+  toast(`Ensayo: ${n} participantes simulados`);
 }
 
 function scheduleBots(i, dur) {
@@ -671,7 +674,7 @@ function renderSyncCount() {
   const real = Object.keys(S.real.players).length;
   $('#sync-count').textContent = real;
   const bots = Object.keys(S.bots.players).length;
-  $('#sync-msg').textContent = bots ? `Además, ${bots} participantes de ensayo ya están incluidos.` : '';
+  $('#sync-msg').textContent = bots ? `Incluye ${bots} participantes simulados del ensayo.` : '';
 }
 
 function addCodes(text) {
@@ -721,7 +724,7 @@ function addCodes(text) {
   const parts = [`${added} ${added === 1 ? 'código nuevo' : 'códigos nuevos'}`];
   if (dup) parts.push(`${dup} repetido${dup === 1 ? '' : 's'}`);
   if (bad) parts.push(`${bad} con error de captura`);
-  if (otherBank) parts.push(`${otherBank} de otro banco de preguntas`);
+  if (otherBank) parts.push(`${otherBank} de otra versión de la evaluación`);
   if (!found.length) parts.splice(0, parts.length, 'No se encontraron códigos SNP-… en el texto');
   toast(parts.join(' · '));
   return added;
@@ -970,11 +973,11 @@ $('#exp-json').addEventListener('click', () => {
   download(`sinapsis-resultados-${stamp()}.json`, jsonExport(S.bank, currentStats(), raw, { anonymous: ANON }), 'application/json');
 });
 $('#btn-close-room').addEventListener('click', async () => {
-  if (!confirm('¿Cerrar la sala y borrar los datos en tiempo real?\n\nExporta antes los resultados: después no se podrán recuperar.')) return;
+  if (!confirm('¿Cerrar la sala?\n\nDescarga antes los resultados: después no se podrán recuperar.')) return;
   try {
     await S.transport.close();
     S.phase = 'closed-room';
-    toast('Sala cerrada y datos en tiempo real eliminados');
+    toast('Sala cerrada');
   } catch (err) {
     toast(friendlyError(err));
   }

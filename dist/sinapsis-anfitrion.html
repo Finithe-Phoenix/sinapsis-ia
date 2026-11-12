@@ -679,7 +679,40 @@ body:not([data-screen='lobby']) .keys {
   word-break: break-all;
 }
 .join-hint:empty,
-.pin:empty { display: none; }
+.pin:empty,
+.join-code:empty { display: none; }
+.join-big {
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.join-code {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: var(--gray);
+  letter-spacing: 0.04em;
+}
+
+/* Indicador «En vivo» */
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.live .led { width: 7px; height: 7px; border-radius: 50%; background: var(--red); animation: led 2s infinite; }
 .steps {
   list-style: none;
   padding: 0;
@@ -1263,8 +1296,12 @@ body:not([data-screen='lobby']) .keys {
   pointer-events: none;
   transition: opacity 0.6s;
 }
-body[data-screen='report1'] .report-tools,
-body[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
+body.pointer[data-screen='report1'] .report-tools,
+body.pointer[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
+
+/* Controles del anfitrión: aparecen solo al mover el mouse */
+.host-only:not(.report-tools) { opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+body.pointer .host-only:not(.report-tools) { opacity: 1; pointer-events: auto; }
 .report-tools .btn { padding: 8px 14px; font-size: 0.8rem; background: rgba(255, 255, 255, 0.9); }
 
 /* Animación de gráficas */
@@ -1389,12 +1426,11 @@ body[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
     </div>
     <div class="hud-center" id="hud-progress" aria-label="Progreso"></div>
     <div class="hud-right">
-      <span class="chip" id="hud-mode"></span>
-      <span class="chip chip-pin" id="hud-pin-chip">PIN <strong id="hud-pin">—</strong></span>
-      <button class="icon-btn" id="btn-mute" aria-label="Silenciar sonido" title="Sonido (M)">
+      <span class="live hidden" id="hud-live"><span class="led on"></span>En vivo</span>
+      <button class="icon-btn host-only" id="btn-mute" aria-label="Silenciar sonido" title="Sonido (M)">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path id="mute-waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
-      <button class="icon-btn" id="btn-fs" aria-label="Pantalla completa" title="Pantalla completa (F)">
+      <button class="icon-btn host-only" id="btn-fs" aria-label="Pantalla completa" title="Pantalla completa (F)">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
     </div>
@@ -1402,28 +1438,22 @@ body[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
 
   <main>
     <!-- 0 · Desbloqueo -->
-    <section class="screen active" id="s-unlock" aria-label="Consola del anfitrión">
+    <section class="screen active" id="s-unlock" aria-label="Abrir la sesión">
       <div class="unlock-card">
         <span class="wordmark"><span class="dot"></span><span class="app-name">SINAPSIS</span></span>
-        <h1>Consola del anfitrión</h1>
-        <p class="muted">Desbloquea el banco de preguntas para abrir la sala.</p>
+        <h1>Abrir la sesión</h1>
+        <p class="muted">Ingresa la clave de la sesión para comenzar.</p>
         <form id="unlock-form" autocomplete="off">
           <div class="field">
-            <label for="pass">Clave del banco</label>
+            <label for="pass">Clave de la sesión</label>
             <input id="pass" type="password" class="input" autocomplete="off" spellcheck="false" />
           </div>
           <div class="error" id="unlock-err" role="alert"></div>
-          <button class="btn btn-primary" type="submit" id="btn-unlock">Abrir sala</button>
+          <button class="btn btn-primary" type="submit" id="btn-unlock">Comenzar</button>
         </form>
-        <details class="alt-bank">
-          <summary>Usar otro banco de preguntas (.json)</summary>
-          <p class="muted small">Puedes cargar un banco sin cifrar (privado/banco.json) o uno cifrado con la herramienta de cifrado.</p>
-          <input type="file" accept=".json,application/json" id="bank-file" />
-          <div class="small" id="bank-file-info"></div>
-        </details>
+        <div class="small muted" id="bank-file-info"></div>
         <div class="unlock-foot">
-          <span class="chip" id="mode-info"></span>
-          <label class="check"><input type="checkbox" id="skip-intro" /> Omitir prólogo</label>
+          <label class="check"><input type="checkbox" id="skip-intro" /> Omitir la introducción</label>
         </div>
       </div>
     </section>
@@ -1439,7 +1469,6 @@ body[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
         <div class="title-rule"></div>
         <p class="title-sub" id="title-sub">Evaluación de Inteligencia Artificial</p>
       </div>
-      <div class="skip-hint">Espacio para continuar</div>
     </section>
 
     <!-- 2 · Lobby -->
@@ -1451,24 +1480,23 @@ body[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
           <div class="join-card">
             <div class="qr-card" id="qr-card"><div id="qr" class="qr"></div></div>
             <div class="join-info">
-              <div class="pin-label" id="pin-label">PIN de la sala</div>
-              <div class="pin mono" id="pin"></div>
-              <div class="join-hint" id="join-hint"></div>
+              <div class="pin-label" id="pin-label">Únete en</div>
+              <div class="join-big" id="join-big"></div>
+              <div class="join-code" id="join-code"></div>
             </div>
           </div>
           <ol class="steps">
-            <li><span class="step-n">1</span><span id="step-1">Escanea el código o entra a <strong id="join-url" class="mono"></strong></span></li>
-            <li><span class="step-n">2</span><span id="step-2">Ingresa el PIN <strong id="pin-inline" class="mono"></strong></span></li>
-            <li><span class="step-n">3</span><span id="step-3">Elige tu alias y espera el inicio</span></li>
+            <li><span class="step-n">1</span><span id="step-1">Escanea el código con tu celular</span></li>
+            <li><span class="step-n">2</span><span id="step-2">O abre el enlace en tu laptop</span></li>
+            <li><span class="step-n">3</span><span id="step-3">Escribe tu nombre y espera el inicio</span></li>
           </ol>
-          <p class="lobby-local hidden" id="lobby-local"></p>
         </div>
         <div class="lobby-stage">
           <p class="stage-note">Sin ranking ni ganadores · mediremos lo que sabemos <em>como equipo</em></p>
           <div class="stage-foot">
-            <div class="count" id="lobby-count"><span id="player-count">0</span><span class="count-label" id="count-label">nodos conectados</span></div>
+            <div class="count" id="lobby-count"><span id="player-count">0</span><span class="count-label" id="count-label">participantes conectados</span></div>
             <div class="lobby-actions">
-              <button class="btn btn-ghost" id="btn-bots" title="Atajo: B">+ Participantes de ensayo</button>
+              <button class="btn btn-ghost host-only" id="btn-bots">Simular participantes</button>
               <button class="btn btn-primary" id="btn-start">Comenzar evaluación</button>
             </div>
           </div>
@@ -1539,10 +1567,10 @@ body[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
             <li><span class="step-n">2</span><span>Toca <strong>Copiar mensaje</strong> y pégalo en el chat de la reunión</span></li>
             <li><span class="step-n">3</span><span>Cuando todos lo envíen, generaremos el informe del equipo</span></li>
           </ol>
-          <p class="lobby-note">El código solo contiene tus respuestas y tu alias. No hay ranking.</p>
+          <p class="lobby-note">El código solo contiene tus respuestas y tu nombre. No hay ranking.</p>
         </div>
         <div class="sync-side">
-          <div class="sync-count"><span id="sync-count">0</span><span class="count-label">nodos sincronizados</span></div>
+          <div class="sync-count"><span id="sync-count">0</span><span class="count-label">resultados recibidos</span></div>
           <div class="chips sync-chips" id="sync-chips" aria-live="polite"></div>
           <div class="sync-actions">
             <button class="btn" id="btn-paste">Pegar códigos del chat</button>
@@ -1630,14 +1658,13 @@ body[data-screen='report2'] .report-tools { opacity: 1; pointer-events: auto; }
   </main>
 
   <!-- Herramientas del informe -->
-  <div class="report-tools" id="report-tools">
+  <div class="report-tools host-only" id="report-tools">
     <button class="btn btn-ghost hidden" id="btn-add-codes">Agregar códigos</button>
-    <button class="btn btn-ghost" id="exp-people">Exportar participantes (CSV)</button>
-    <button class="btn btn-ghost" id="exp-questions">Exportar preguntas (CSV)</button>
-    <button class="btn btn-ghost" id="exp-json">Exportar todo (JSON)</button>
+    <button class="btn btn-ghost" id="exp-people">Descargar participantes (Excel)</button>
+    <button class="btn btn-ghost" id="exp-questions">Descargar preguntas (Excel)</button>
+    <button class="btn btn-ghost" id="exp-json">Descargar respaldo completo</button>
     <button class="btn btn-ghost" id="btn-close-room">Cerrar sala</button>
   </div>
-  <footer class="keys" id="keys">Espacio / → continuar · M sonido · F pantalla completa</footer>
   </div>
 
   <dialog class="paste-dialog" id="paste-dialog">
@@ -3288,38 +3315,50 @@ async function initStatic() {
   net.addCore();
   net.bloom(26, 1600);
   $('#pass').focus();
-  $('#mode-info').innerHTML = '<span class="led"></span>Detectando conexión…';
   const det = await detectMode();
   S.mode = det.mode;
   S.modeInfo = det.info;
-  const mode = OFFLINE()
-    ? '<span class="led"></span>Sin conexión · códigos'
-    : '<span class="led on"></span>En vivo · red local';
-  $('#mode-info').innerHTML = mode;
-  $('#hud-mode').innerHTML = mode;
+  $('#hud-live').classList.toggle('hidden', OFFLINE());
 }
 
-// ── Desbloqueo del banco ─────────────────────────────────────
-$('#bank-file').addEventListener('change', async (e) => {
-  const file = e.target.files?.[0];
+// ── Preguntas alternativas (avanzado) ────────────────────────
+// Para usar otras preguntas, arrastra su archivo sobre la pantalla de inicio.
+async function loadBankFile(file) {
   const info = $('#bank-file-info');
-  if (!file) return;
   try {
     const obj = JSON.parse(await file.text());
     if (obj.app === 'sinapsis' && obj.data) {
       S.pendingPayload = obj;
       S.bank = null;
-      info.textContent = 'Banco cifrado cargado. Escribe su clave arriba.';
+      info.textContent = 'Preguntas cargadas. Escribe su clave para comenzar.';
     } else {
       const problems = validateBank(obj);
       if (problems.length) throw new Error(problems[0]);
       S.bank = obj;
       S.pendingPayload = null;
-      info.textContent = `Banco sin cifrar cargado: ${obj.questions.length} preguntas. No necesitas clave.`;
+      info.textContent = `Preguntas cargadas (${obj.questions.length}). Pulsa «Comenzar».`;
     }
-  } catch (err) {
-    info.textContent = `No se pudo leer el archivo: ${err.message}`;
+  } catch {
+    info.textContent = 'Ese archivo no contiene preguntas válidas.';
   }
+}
+window.addEventListener('dragover', (e) => {
+  if (S.screen === 'unlock') e.preventDefault();
+});
+window.addEventListener('drop', (e) => {
+  if (S.screen !== 'unlock') return;
+  e.preventDefault();
+  const file = e.dataTransfer?.files?.[0];
+  if (file) loadBankFile(file);
+});
+
+// Los controles del anfitrión solo aparecen al mover el mouse,
+// para que la pantalla proyectada se vea limpia.
+let pointerTimer;
+window.addEventListener('pointermove', () => {
+  document.body.classList.add('pointer');
+  clearTimeout(pointerTimer);
+  pointerTimer = setTimeout(() => document.body.classList.remove('pointer'), 2500);
 });
 
 $('#unlock-form').addEventListener('submit', async (e) => {
@@ -3334,11 +3373,11 @@ $('#unlock-form').addEventListener('submit', async (e) => {
     await ready;
     if (!S.bank) {
       const pass = $('#pass').value;
-      if (!pass) throw new Error('Escribe la clave del banco.');
+      if (!pass) throw new Error('Escribe la clave de la sesión.');
       let payload = S.pendingPayload || window.SINAPSIS_BANCO;
       if (!payload) {
         const res = await fetch(CONFIG.bankUrl, { cache: 'no-store' });
-        if (!res.ok) throw new Error(`No se encontró el banco cifrado (${CONFIG.bankUrl}).`);
+        if (!res.ok) throw new Error('No se pudo cargar el contenido de la sesión.');
         payload = await res.json();
       }
       S.bank = await decryptBank(payload, pass);
@@ -3352,14 +3391,15 @@ $('#unlock-form').addEventListener('submit', async (e) => {
   } catch (err) {
     errEl.textContent = friendlyError(err);
     btn.disabled = false;
-    btn.textContent = 'Abrir sala';
+    btn.textContent = 'Comenzar';
   }
 });
 
 function friendlyError(err) {
   const m = String(err?.message || err);
-  if (m === 'sin-servidor') return 'No se pudo conectar con el servidor local. Reinicia tools/servidor.mjs o usa el modo sin conexión.';
-  if (/Failed to fetch|NetworkError/i.test(m)) return 'No se pudo leer un archivo de la app. Si abriste la página directamente desde el disco, usa los archivos de la carpeta dist/.';
+  if (m === 'sin-servidor') return 'No se pudo iniciar la sala. Cierra SINAPSIS y vuelve a abrirlo.';
+  if (/Failed to fetch|NetworkError/i.test(m)) return 'No se pudo cargar el contenido de la sesión.';
+  if (/^Pregunta \d+:|^Falta|no es un objeto/.test(m)) return 'El contenido de la sesión no es válido.';
   return m;
 }
 
@@ -3419,34 +3459,24 @@ function participantUrl() {
 function setupLobby() {
   const url = participantUrl();
   // En red local basta con la raíz (redirige al participante y encuentra la sala sola)
-  const shown = !url ? CONFIG.participantFile : OFFLINE() ? `${url.host}${url.pathname}` : `http://${url.host}`;
-  const identityStep = ANON ? 'Entra sin nombre (participación anónima)' : CONFIG.identity === 'nombre' ? 'Escribe tu nombre' : 'Elige tu alias';
-  $('#hud-pin').textContent = S.pin || '—';
-  $('#hud-pin-chip').classList.toggle('hidden', OFFLINE());
+  const shown = !url ? CONFIG.participantFile : OFFLINE() ? `${url.host}${url.pathname}` : url.host;
+  const identityStep = ANON ? 'Entra' : CONFIG.identity === 'nombre' ? 'Escribe tu nombre' : 'Elige tu alias';
   const qr = $('#qr');
-  $('#join-hint').textContent = shown;
+  $('#join-big').textContent = shown;
+  $('#join-code').textContent = OFFLINE() ? '' : `Código de sala · ${S.pin}`;
+  $('#pin-label').textContent = url ? 'Únete en' : 'Abre el archivo';
+  $('#qr-card').classList.toggle('hidden', !url);
   if (OFFLINE()) {
-    $('#step-1').textContent = url ? 'Escanea el código o abre la dirección de la tarjeta' : 'Abre el archivo que compartimos en el chat';
+    $('#step-1').textContent = url ? 'Escanea el código o abre el enlace' : 'Ábrelo desde el chat de la reunión';
     $('#step-2').textContent = `${identityStep} y toca «Comenzar»`;
     $('#step-3').textContent = 'Sigue esta pantalla y responde en tu dispositivo';
-    $('#lobby-local').innerHTML = 'Modo sin conexión: al final, cada persona enviará un <strong>código de resultados</strong> por el chat y con él se genera el informe del equipo.';
-    $('#lobby-local').classList.remove('hidden');
-    $('#pin-label').textContent = url ? 'Página del participante' : 'Archivo del participante';
-    $('#pin').textContent = '';
-    $('#qr-card').classList.toggle('hidden', !url);
-    $('#count-label').textContent = 'participantes de ensayo';
     $('#lobby-count').classList.add('hidden');
-    if (url && !drawQr(qr, url.href)) qr.innerHTML = `<p class="qr-fallback">${esc(shown)}</p>`;
   } else {
     $('#step-1').textContent = 'Escanea el código con tu celular';
-    $('#step-2').innerHTML = `O abre <strong class="mono">${esc(shown)}</strong> en tu laptop`;
+    $('#step-2').textContent = 'O abre el enlace en tu laptop';
     $('#step-3').textContent = `${identityStep} y espera el inicio`;
-    $('#pin-label').textContent = 'PIN de la sala';
-    $('#pin').textContent = S.pin;
-    $('#lobby-local').innerHTML = 'En vivo por red local: los dispositivos deben estar en la misma red que esta laptop.';
-    $('#lobby-local').classList.remove('hidden');
-    if (!drawQr(qr, url.href)) qr.innerHTML = `<p class="qr-fallback">Entra a<br><strong>${esc(shown)}</strong></p>`;
   }
+  if (url && !drawQr(qr, url.href)) qr.innerHTML = `<p class="qr-fallback">${esc(shown)}</p>`;
 }
 
 // Escena de la red según la pantalla: constelación con nombres en el lobby
@@ -3525,7 +3555,7 @@ function addBots(n = 24) {
   // Escalonar la llegada visual
   const ids = Object.keys(S.bots.players).filter((id) => !S.seen.has(id));
   ids.forEach((id, k) => setTimeout(() => onPlayersChanged(), k * 120));
-  toast(`${n} participantes de ensayo agregados`);
+  toast(`Ensayo: ${n} participantes simulados`);
 }
 
 function scheduleBots(i, dur) {
@@ -3827,7 +3857,7 @@ function renderSyncCount() {
   const real = Object.keys(S.real.players).length;
   $('#sync-count').textContent = real;
   const bots = Object.keys(S.bots.players).length;
-  $('#sync-msg').textContent = bots ? `Además, ${bots} participantes de ensayo ya están incluidos.` : '';
+  $('#sync-msg').textContent = bots ? `Incluye ${bots} participantes simulados del ensayo.` : '';
 }
 
 function addCodes(text) {
@@ -3877,7 +3907,7 @@ function addCodes(text) {
   const parts = [`${added} ${added === 1 ? 'código nuevo' : 'códigos nuevos'}`];
   if (dup) parts.push(`${dup} repetido${dup === 1 ? '' : 's'}`);
   if (bad) parts.push(`${bad} con error de captura`);
-  if (otherBank) parts.push(`${otherBank} de otro banco de preguntas`);
+  if (otherBank) parts.push(`${otherBank} de otra versión de la evaluación`);
   if (!found.length) parts.splice(0, parts.length, 'No se encontraron códigos SNP-… en el texto');
   toast(parts.join(' · '));
   return added;
@@ -4126,11 +4156,11 @@ $('#exp-json').addEventListener('click', () => {
   download(`sinapsis-resultados-${stamp()}.json`, jsonExport(S.bank, currentStats(), raw, { anonymous: ANON }), 'application/json');
 });
 $('#btn-close-room').addEventListener('click', async () => {
-  if (!confirm('¿Cerrar la sala y borrar los datos en tiempo real?\n\nExporta antes los resultados: después no se podrán recuperar.')) return;
+  if (!confirm('¿Cerrar la sala?\n\nDescarga antes los resultados: después no se podrán recuperar.')) return;
   try {
     await S.transport.close();
     S.phase = 'closed-room';
-    toast('Sala cerrada y datos en tiempo real eliminados');
+    toast('Sala cerrada');
   } catch (err) {
     toast(friendlyError(err));
   }
