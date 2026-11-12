@@ -51,9 +51,12 @@ const vibrate = (ms) => {
     navigator.vibrate?.(ms);
   } catch {}
 };
-const meKey = (pin) => `sinapsis:me:${pin}`;
+// Progreso por sala y nombre (persiste al cerrar la pestaña)
+const meKey = (pin, alias) => `sinapsis:me:${pin}:${String(alias || '').trim().toLowerCase()}`;
+const lastKey = (pin) => `sinapsis:last:${pin}`;
+const tabKey = (pin) => `sinapsis:tab:${pin}`;
 const offKey = () => `sinapsis:off:${P.pub.fp}`;
-const save = () => (P.mode === 'red' ? store.set(meKey(P.pin), P.me) : lstore.set(offKey(), P.off));
+const save = () => (P.mode === 'red' ? lstore.set(meKey(P.pin, P.me.alias), P.me) : lstore.set(offKey(), P.off));
 
 function show(id) {
   if (P.view === id) return;
@@ -120,8 +123,13 @@ async function init() {
     }
     ($('#pin-field').classList.contains('hidden') ? aliasInput : pinInput).focus();
     const pin = pinInput.value;
-    const saved = pin.length === 6 ? store.get(meKey(pin)) : null;
-    if (saved?.alias) joinRed(pin, saved.alias, { silent: true });
+    // Recarga de esta misma pestaña: vuelve a entrar sola. Pestaña nueva: ofrece continuar.
+    const last = pin.length === 6 ? lstore.get(lastKey(pin)) : null;
+    if (last && store.get(tabKey(pin)) === last) joinRed(pin, last, { silent: true });
+    else if (last && !ANON) {
+      aliasInput.value = last;
+      $('#alias-hint').textContent = `¿Eres ${last}? Toca «Entrar» para continuar donde te quedaste.`;
+    }
   } else {
     $('#pin-field').classList.add('hidden');
     btn.textContent = 'Comenzar';
@@ -184,8 +192,10 @@ async function joinRed(pin, alias, { silent = false } = {}) {
     P.transport = P.transport || createPlayer();
     await P.transport.join(pin, alias);
     P.pin = pin;
-    P.me = store.get(meKey(pin)) || { alias, answers: {}, conf: {}, reveals: {} };
+    P.me = lstore.get(meKey(pin, alias)) || { alias, answers: {}, conf: {}, reveals: {} };
     P.me.alias = alias;
+    lstore.set(lastKey(pin), alias);
+    store.set(tabKey(pin), alias);
     save();
     setMeChip(alias);
     $('#wait-title').textContent = ANON ? 'Bienvenido a la red' : `Bienvenido, ${alias}`;
@@ -198,7 +208,7 @@ async function joinRed(pin, alias, { silent = false } = {}) {
       m === 'no-room'
         ? 'No encontramos esa sala. Revisa el código en la pantalla principal.'
         : 'No pudimos conectarte. Revisa tu conexión e inténtalo de nuevo.';
-    if (silent) store.del(meKey(pin));
+    if (silent) store.del(tabKey(pin));
   } finally {
     btn.disabled = false;
     btn.textContent = 'Entrar';

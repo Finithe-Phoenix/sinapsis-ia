@@ -11,3 +11,6 @@ Thumbs.db
 
 # Configuración local del editor/agente
 .claude/
+
+# Sesiones y resultados guardados por el servidor local
+resultados/

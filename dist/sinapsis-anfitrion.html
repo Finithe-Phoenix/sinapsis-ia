@@ -493,6 +493,17 @@ body:not([data-screen='lobby']) .keys {
   border-top: 1px solid var(--line-2);
 }
 .check { display: inline-flex; gap: 8px; align-items: center; font-size: 0.85rem; color: var(--gray); }
+.resume-box {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--red-tint);
+  border-left: 3px solid var(--red);
+}
+.resume-box.hidden { display: none; }
+.resume-title { font-weight: 600; color: var(--ink); }
+.resume-info { font-size: 0.85rem; color: var(--ink-2); }
+.resume-box .check { color: var(--ink-2); }
 
 /* ── Prólogo ─────────────────────────────────────────────── */
 #s-prologue { display: grid; place-items: center; }
@@ -1443,6 +1454,12 @@ body.pointer .host-only:not(.report-tools) { opacity: 1; pointer-events: auto; }
         <span class="wordmark"><span class="dot"></span><span class="app-name">SINAPSIS</span></span>
         <h1>Abrir la sesión</h1>
         <p class="muted">Ingresa la clave de la sesión para comenzar.</p>
+        <div class="resume-box hidden" id="resume-box">
+          <div class="resume-title">Hay una sesión en curso</div>
+          <div class="resume-info" id="resume-info"></div>
+          <label class="check"><input type="radio" name="resume" value="1" checked /> Continuar donde se quedó</label>
+          <label class="check"><input type="radio" name="resume" value="0" /> Empezar una sesión nueva</label>
+        </div>
         <form id="unlock-form" autocomplete="off">
           <div class="field">
             <label for="pass">Clave de la sesión</label>
@@ -1819,6 +1836,28 @@ const store = {
   },
 };
 
+// Almacenamiento persistente (sobrevive a cerrar la pestaña)
+const lstore = {
+  get(key, fallback = null) {
+    try {
+      const v = localStorage.getItem(key);
+      return v == null ? fallback : JSON.parse(v);
+    } catch {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {}
+  },
+  del(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch {}
+  },
+};
+
 // Animación de conteo numérico
 function countUp(el, to, { duration = 1800, suffix = '' } = {}) {
   const start = performance.now();
@@ -1843,7 +1882,7 @@ function nextFrame() {
   return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-return { $, $$, sleep, clamp, LETTERS, esc, pct, shapeSvg, genPin, uid, randomAlias, download, store, countUp, maskText, nextFrame };
+return { $, $$, sleep, clamp, LETTERS, esc, pct, shapeSvg, genPin, uid, randomAlias, download, store, lstore, countUp, maskText, nextFrame };
 })();
 __m['crypto'] = (() => {
 // Cifrado del banco de preguntas (AES-GCM 256 + PBKDF2-SHA256)
@@ -2966,7 +3005,7 @@ __m['transport'] = (() => {
 //                en su dispositivo y al final envía un código por el chat.
 // ─────────────────────────────────────────────────────────────
 const { CONFIG } = __m['config'];
-const { genPin, uid: newUid, store } = __m['util'];
+const { genPin, uid: newUid, lstore } = __m['util'];
 const clean = (o) => JSON.parse(JSON.stringify(o ?? null));
 
 // Detecta si la página la sirve el servidor local de SINAPSIS
@@ -3030,11 +3069,20 @@ class RelayHost {
     this.state = null;
     this.cbs = { players: [], answers: [], conf: [] };
   }
-  async open() {
+  // pin: para reanudar una sesión guardada con el mismo código de sala
+  async open(pin) {
     await this.ch.ready;
-    this.pin = genPin();
+    this.pin = pin || genPin();
     this.ch.onmessage = (e) => this._on(e.data);
     return this.pin;
+  }
+  // Recupera participantes y respuestas de una sesión guardada
+  restore(saved) {
+    this.data = {
+      players: clean(saved.players || {}),
+      answers: clean(saved.answers || {}),
+      conf: clean(saved.conf || {}),
+    };
   }
   _emit(k) {
     const v = clean(this.data[k]);
@@ -3090,6 +3138,7 @@ class RelayHost {
 class OfflineHost {
   mode = 'codigos';
   async open() { this.pin = ''; return ''; }
+  restore() {}
   setState() {}
   onPlayers() {}
   onAnswers() {}
@@ -3146,8 +3195,10 @@ class RelayPlayer {
   async join(pin, alias) {
     this.pin = String(pin);
     this.alias = alias;
-    this.myId = store.get('sinapsis:uid') || newUid();
-    store.set('sinapsis:uid', this.myId);
+    // Mismo nombre en la misma sala = misma persona (recupera su lugar al volver)
+    const key = `sinapsis:uid:${this.pin}:${String(alias).trim().toLowerCase()}`;
+    this.myId = lstore.get(key) || newUid();
+    lstore.set(key, this.myId);
     await this.ch.ready;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -3319,6 +3370,84 @@ async function initStatic() {
   S.mode = det.mode;
   S.modeInfo = det.info;
   $('#hud-live').classList.toggle('hidden', OFFLINE());
+  if (!OFFLINE()) await checkSavedSession();
+}
+
+// ── Sesión guardada (para continuar tras recargar o cerrar) ──
+async function checkSavedSession() {
+  try {
+    const r = await fetch('api/session', { cache: 'no-store' });
+    if (r.status !== 200) return;
+    const saved = await r.json();
+    const n = Object.keys(saved.players || {}).length;
+    const where =
+      saved.phase === 'lobby' || !(saved.q >= 0)
+        ? 'en la sala de espera'
+        : ['report', 'report2', 'credits', 'sync'].includes(saved.phase)
+          ? 'en el informe final'
+          : `en la pregunta ${saved.q + 1} de ${saved.total}`;
+    const at = saved.savedAt ? new Date(saved.savedAt).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : '';
+    $('#resume-info').textContent = `${n} ${n === 1 ? 'participante' : 'participantes'} · ${where}${at ? ` · guardada a las ${at}` : ''}`;
+    $('#resume-box').classList.remove('hidden');
+    S.saved = saved;
+  } catch {}
+}
+
+const PERSIST = () => !OFFLINE() && !!S.pin;
+let saveTimer;
+function snapshot() {
+  const phase = S.phase === 'closed-room' ? 'ended' : S.phase === 'prologue' ? 'lobby' : S.phase;
+  return {
+    app: 'sinapsis',
+    pin: S.pin,
+    title: S.bank?.title || '',
+    fp: S.fp,
+    total: total(),
+    startedAt: S.startedAt,
+    phase,
+    q: S.q,
+    players: S.real.players,
+    answers: S.real.answers,
+    conf: S.real.conf,
+  };
+}
+// Guarda la sesión en disco (con una pequeña espera para agrupar cambios)
+function persist(now = false) {
+  if (!PERSIST()) return;
+  clearTimeout(saveTimer);
+  const run = () =>
+    fetch('api/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(snapshot()), keepalive: true }).catch(() => {});
+  if (now) run();
+  else saveTimer = setTimeout(run, 400);
+}
+// Guarda también los archivos de resultados (Excel y respaldo) al llegar al informe
+function saveExports(stats) {
+  if (!PERSIST()) return;
+  const post = (kind, content) =>
+    fetch('api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: S.pin, kind, content }) }).catch(() => {});
+  post('participantes', csvParticipants(S.bank, stats, { anonymous: ANON }));
+  post('preguntas', csvQuestions(S.bank, stats));
+  post('resultados', jsonExport(S.bank, stats, ANON ? undefined : { answers: answers(), confianza: confs() }, { anonymous: ANON }));
+}
+
+// Retoma la sesión guardada en el punto donde se quedó
+function resumeAt(saved) {
+  const q = Number.isInteger(saved.q) ? saved.q : -1;
+  const phase = saved.phase;
+  toast('Sesión recuperada');
+  if (phase === 'lobby' || q < 0) return enterLobby();
+  if (['report', 'report2', 'credits', 'sync'].includes(phase) || q >= total()) return startReport();
+  if (phase === 'chapter') return startChapter(q);
+  // La pregunta estaba en curso o ya revelada: se muestra su revelación con lo recibido
+  S.q = q;
+  S.phase = 'closed';
+  renderQuestion(q);
+  showScreen('question');
+  stageCenter();
+  net.setOpacity(0.3);
+  renderProgress();
+  $('#s-question').classList.add('enter');
+  showReveal(q);
 }
 
 // ── Preguntas alternativas (avanzado) ────────────────────────
@@ -3385,9 +3514,15 @@ $('#unlock-form').addEventListener('submit', async (e) => {
     const problems = validateBank(S.bank);
     if (problems.length) throw new Error(problems[0]);
     $('#pass').value = '';
-    await openRoom();
-    if ($('#skip-intro').checked) enterLobby();
-    else runPrologue();
+    const wantsResume = !!S.saved && $('input[name="resume"]:checked')?.value === '1';
+    const canResume = wantsResume && S.saved.fp === fingerprint(S.bank.questions);
+    await openRoom(canResume ? S.saved : null);
+    if (canResume) resumeAt(S.saved);
+    else {
+      if (wantsResume) toast('La sesión guardada usa otras preguntas; se inicia una nueva');
+      if ($('#skip-intro').checked) enterLobby();
+      else runPrologue();
+    }
   } catch (err) {
     errEl.textContent = friendlyError(err);
     btn.disabled = false;
@@ -3406,24 +3541,35 @@ function friendlyError(err) {
 // ── Sala ─────────────────────────────────────────────────────
 function pushState(state) {
   Promise.resolve(S.transport.setState(state)).catch((err) => toast(friendlyError(err)));
+  persist();
 }
 
-async function openRoom() {
+// saved: sesión guardada a reanudar (o null para una nueva)
+async function openRoom(saved = null) {
   S.fp = fingerprint(S.bank.questions);
   S.transport = createHost(S.mode);
-  S.pin = await S.transport.open();
+  S.pin = await S.transport.open(saved?.pin);
+  S.startedAt = saved?.startedAt || new Date().toISOString();
+  if (saved) S.transport.restore(saved);
   S.transport.onPlayers((p) => {
     S.real.players = p || {};
     onPlayersChanged();
+    persist();
   });
   S.transport.onAnswers((a) => {
     S.real.answers = a || {};
     onAnswersChanged();
+    persist();
   });
   S.transport.onConf((c) => {
     S.real.conf = c || {};
+    persist();
   });
-  await S.transport.setState({ phase: 'lobby', appName: CONFIG.appName, total: total(), identity: CONFIG.identity, askConfidence: CONFIG.askConfidence });
+  if (!saved) {
+    S.phase = 'lobby';
+    await S.transport.setState({ phase: 'lobby', appName: CONFIG.appName, total: total(), identity: CONFIG.identity, askConfidence: CONFIG.askConfidence });
+    persist(true);
+  }
   window.addEventListener('beforeunload', (e) => {
     if (S.phase !== 'unlock' && S.phase !== 'closed-room') {
       e.preventDefault();
@@ -3982,6 +4128,7 @@ async function startReport() {
   S.q = total();
   const stats = computeStats(S.bank, players(), answers(), confs());
   S.stats = stats;
+  saveExports(stats);
   pushState({
     phase: 'report', total: total(), teamIndex: stats.teamIndex,
     key: S.bank.questions.map((q) => q.correct),
@@ -4158,8 +4305,10 @@ $('#exp-json').addEventListener('click', () => {
 $('#btn-close-room').addEventListener('click', async () => {
   if (!confirm('¿Cerrar la sala?\n\nDescarga antes los resultados: después no se podrán recuperar.')) return;
   try {
+    if (S.stats) saveExports(currentStats());
     await S.transport.close();
     S.phase = 'closed-room';
+    persist(true);
     toast('Sala cerrada');
   } catch (err) {
     toast(friendlyError(err));

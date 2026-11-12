@@ -7,7 +7,7 @@
 //                en su dispositivo y al final envía un código por el chat.
 // ─────────────────────────────────────────────────────────────
 import { CONFIG } from './config.js';
-import { genPin, uid as newUid, store } from './util.js';
+import { genPin, uid as newUid, lstore } from './util.js';
 
 const clean = (o) => JSON.parse(JSON.stringify(o ?? null));
 
@@ -72,11 +72,20 @@ class RelayHost {
     this.state = null;
     this.cbs = { players: [], answers: [], conf: [] };
   }
-  async open() {
+  // pin: para reanudar una sesión guardada con el mismo código de sala
+  async open(pin) {
     await this.ch.ready;
-    this.pin = genPin();
+    this.pin = pin || genPin();
     this.ch.onmessage = (e) => this._on(e.data);
     return this.pin;
+  }
+  // Recupera participantes y respuestas de una sesión guardada
+  restore(saved) {
+    this.data = {
+      players: clean(saved.players || {}),
+      answers: clean(saved.answers || {}),
+      conf: clean(saved.conf || {}),
+    };
   }
   _emit(k) {
     const v = clean(this.data[k]);
@@ -132,6 +141,7 @@ class RelayHost {
 class OfflineHost {
   mode = 'codigos';
   async open() { this.pin = ''; return ''; }
+  restore() {}
   setState() {}
   onPlayers() {}
   onAnswers() {}
@@ -188,8 +198,10 @@ class RelayPlayer {
   async join(pin, alias) {
     this.pin = String(pin);
     this.alias = alias;
-    this.myId = store.get('sinapsis:uid') || newUid();
-    store.set('sinapsis:uid', this.myId);
+    // Mismo nombre en la misma sala = misma persona (recupera su lugar al volver)
+    const key = `sinapsis:uid:${this.pin}:${String(alias).trim().toLowerCase()}`;
+    this.myId = lstore.get(key) || newUid();
+    lstore.set(key, this.myId);
     await this.ch.ready;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {

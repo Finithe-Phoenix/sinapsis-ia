@@ -48,6 +48,12 @@
         <span class="wordmark"><span class="dot"></span><span class="app-name">SINAPSIS</span></span>
         <h1>Abrir la sesión</h1>
         <p class="muted">Ingresa la clave de la sesión para comenzar.</p>
+        <div class="resume-box hidden" id="resume-box">
+          <div class="resume-title">Hay una sesión en curso</div>
+          <div class="resume-info" id="resume-info"></div>
+          <label class="check"><input type="radio" name="resume" value="1" checked /> Continuar donde se quedó</label>
+          <label class="check"><input type="radio" name="resume" value="0" /> Empezar una sesión nueva</label>
+        </div>
         <form id="unlock-form" autocomplete="off">
           <div class="field">
             <label for="pass">Clave de la sesión</label>

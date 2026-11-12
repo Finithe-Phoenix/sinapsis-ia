@@ -232,6 +232,17 @@ body:not([data-screen='lobby']) .keys {
   border-top: 1px solid var(--line-2);
 }
 .check { display: inline-flex; gap: 8px; align-items: center; font-size: 0.85rem; color: var(--gray); }
+.resume-box {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--red-tint);
+  border-left: 3px solid var(--red);
+}
+.resume-box.hidden { display: none; }
+.resume-title { font-weight: 600; color: var(--ink); }
+.resume-info { font-size: 0.85rem; color: var(--ink-2); }
+.resume-box .check { color: var(--ink-2); }
 
 /* ── Prólogo ─────────────────────────────────────────────── */
 #s-prologue { display: grid; place-items: center; }

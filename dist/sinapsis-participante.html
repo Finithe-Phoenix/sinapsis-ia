@@ -1156,6 +1156,28 @@ const store = {
   },
 };
 
+// Almacenamiento persistente (sobrevive a cerrar la pestaña)
+const lstore = {
+  get(key, fallback = null) {
+    try {
+      const v = localStorage.getItem(key);
+      return v == null ? fallback : JSON.parse(v);
+    } catch {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {}
+  },
+  del(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch {}
+  },
+};
+
 // Animación de conteo numérico
 function countUp(el, to, { duration = 1800, suffix = '' } = {}) {
   const start = performance.now();
@@ -1180,7 +1202,7 @@ function nextFrame() {
   return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
 }
 
-return { $, $$, sleep, clamp, LETTERS, esc, pct, shapeSvg, genPin, uid, randomAlias, download, store, countUp, maskText, nextFrame };
+return { $, $$, sleep, clamp, LETTERS, esc, pct, shapeSvg, genPin, uid, randomAlias, download, store, lstore, countUp, maskText, nextFrame };
 })();
 __m['codes'] = (() => {
 // ─────────────────────────────────────────────────────────────
@@ -1323,7 +1345,7 @@ __m['transport'] = (() => {
 //                en su dispositivo y al final envía un código por el chat.
 // ─────────────────────────────────────────────────────────────
 const { CONFIG } = __m['config'];
-const { genPin, uid: newUid, store } = __m['util'];
+const { genPin, uid: newUid, lstore } = __m['util'];
 const clean = (o) => JSON.parse(JSON.stringify(o ?? null));
 
 // Detecta si la página la sirve el servidor local de SINAPSIS
@@ -1387,11 +1409,20 @@ class RelayHost {
     this.state = null;
     this.cbs = { players: [], answers: [], conf: [] };
   }
-  async open() {
+  // pin: para reanudar una sesión guardada con el mismo código de sala
+  async open(pin) {
     await this.ch.ready;
-    this.pin = genPin();
+    this.pin = pin || genPin();
     this.ch.onmessage = (e) => this._on(e.data);
     return this.pin;
+  }
+  // Recupera participantes y respuestas de una sesión guardada
+  restore(saved) {
+    this.data = {
+      players: clean(saved.players || {}),
+      answers: clean(saved.answers || {}),
+      conf: clean(saved.conf || {}),
+    };
   }
   _emit(k) {
     const v = clean(this.data[k]);
@@ -1447,6 +1478,7 @@ class RelayHost {
 class OfflineHost {
   mode = 'codigos';
   async open() { this.pin = ''; return ''; }
+  restore() {}
   setState() {}
   onPlayers() {}
   onAnswers() {}
@@ -1503,8 +1535,10 @@ class RelayPlayer {
   async join(pin, alias) {
     this.pin = String(pin);
     this.alias = alias;
-    this.myId = store.get('sinapsis:uid') || newUid();
-    store.set('sinapsis:uid', this.myId);
+    // Mismo nombre en la misma sala = misma persona (recupera su lugar al volver)
+    const key = `sinapsis:uid:${this.pin}:${String(alias).trim().toLowerCase()}`;
+    this.myId = lstore.get(key) || newUid();
+    lstore.set(key, this.myId);
     await this.ch.ready;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -1591,9 +1625,12 @@ const vibrate = (ms) => {
     navigator.vibrate?.(ms);
   } catch {}
 };
-const meKey = (pin) => `sinapsis:me:${pin}`;
+// Progreso por sala y nombre (persiste al cerrar la pestaña)
+const meKey = (pin, alias) => `sinapsis:me:${pin}:${String(alias || '').trim().toLowerCase()}`;
+const lastKey = (pin) => `sinapsis:last:${pin}`;
+const tabKey = (pin) => `sinapsis:tab:${pin}`;
 const offKey = () => `sinapsis:off:${P.pub.fp}`;
-const save = () => (P.mode === 'red' ? store.set(meKey(P.pin), P.me) : lstore.set(offKey(), P.off));
+const save = () => (P.mode === 'red' ? lstore.set(meKey(P.pin, P.me.alias), P.me) : lstore.set(offKey(), P.off));
 
 function show(id) {
   if (P.view === id) return;
@@ -1660,8 +1697,13 @@ async function init() {
     }
     ($('#pin-field').classList.contains('hidden') ? aliasInput : pinInput).focus();
     const pin = pinInput.value;
-    const saved = pin.length === 6 ? store.get(meKey(pin)) : null;
-    if (saved?.alias) joinRed(pin, saved.alias, { silent: true });
+    // Recarga de esta misma pestaña: vuelve a entrar sola. Pestaña nueva: ofrece continuar.
+    const last = pin.length === 6 ? lstore.get(lastKey(pin)) : null;
+    if (last && store.get(tabKey(pin)) === last) joinRed(pin, last, { silent: true });
+    else if (last && !ANON) {
+      aliasInput.value = last;
+      $('#alias-hint').textContent = `¿Eres ${last}? Toca «Entrar» para continuar donde te quedaste.`;
+    }
   } else {
     $('#pin-field').classList.add('hidden');
     btn.textContent = 'Comenzar';
@@ -1724,8 +1766,10 @@ async function joinRed(pin, alias, { silent = false } = {}) {
     P.transport = P.transport || createPlayer();
     await P.transport.join(pin, alias);
     P.pin = pin;
-    P.me = store.get(meKey(pin)) || { alias, answers: {}, conf: {}, reveals: {} };
+    P.me = lstore.get(meKey(pin, alias)) || { alias, answers: {}, conf: {}, reveals: {} };
     P.me.alias = alias;
+    lstore.set(lastKey(pin), alias);
+    store.set(tabKey(pin), alias);
     save();
     setMeChip(alias);
     $('#wait-title').textContent = ANON ? 'Bienvenido a la red' : `Bienvenido, ${alias}`;
@@ -1738,7 +1782,7 @@ async function joinRed(pin, alias, { silent = false } = {}) {
       m === 'no-room'
         ? 'No encontramos esa sala. Revisa el código en la pantalla principal.'
         : 'No pudimos conectarte. Revisa tu conexión e inténtalo de nuevo.';
-    if (silent) store.del(meKey(pin));
+    if (silent) store.del(tabKey(pin));
   } finally {
     btn.disabled = false;
     btn.textContent = 'Entrar';

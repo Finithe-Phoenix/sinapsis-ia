@@ -136,6 +136,84 @@ async function initStatic() {
   S.mode = det.mode;
   S.modeInfo = det.info;
   $('#hud-live').classList.toggle('hidden', OFFLINE());
+  if (!OFFLINE()) await checkSavedSession();
+}
+
+// ── Sesión guardada (para continuar tras recargar o cerrar) ──
+async function checkSavedSession() {
+  try {
+    const r = await fetch('api/session', { cache: 'no-store' });
+    if (r.status !== 200) return;
+    const saved = await r.json();
+    const n = Object.keys(saved.players || {}).length;
+    const where =
+      saved.phase === 'lobby' || !(saved.q >= 0)
+        ? 'en la sala de espera'
+        : ['report', 'report2', 'credits', 'sync'].includes(saved.phase)
+          ? 'en el informe final'
+          : `en la pregunta ${saved.q + 1} de ${saved.total}`;
+    const at = saved.savedAt ? new Date(saved.savedAt).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : '';
+    $('#resume-info').textContent = `${n} ${n === 1 ? 'participante' : 'participantes'} · ${where}${at ? ` · guardada a las ${at}` : ''}`;
+    $('#resume-box').classList.remove('hidden');
+    S.saved = saved;
+  } catch {}
+}
+
+const PERSIST = () => !OFFLINE() && !!S.pin;
+let saveTimer;
+function snapshot() {
+  const phase = S.phase === 'closed-room' ? 'ended' : S.phase === 'prologue' ? 'lobby' : S.phase;
+  return {
+    app: 'sinapsis',
+    pin: S.pin,
+    title: S.bank?.title || '',
+    fp: S.fp,
+    total: total(),
+    startedAt: S.startedAt,
+    phase,
+    q: S.q,
+    players: S.real.players,
+    answers: S.real.answers,
+    conf: S.real.conf,
+  };
+}
+// Guarda la sesión en disco (con una pequeña espera para agrupar cambios)
+function persist(now = false) {
+  if (!PERSIST()) return;
+  clearTimeout(saveTimer);
+  const run = () =>
+    fetch('api/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(snapshot()), keepalive: true }).catch(() => {});
+  if (now) run();
+  else saveTimer = setTimeout(run, 400);
+}
+// Guarda también los archivos de resultados (Excel y respaldo) al llegar al informe
+function saveExports(stats) {
+  if (!PERSIST()) return;
+  const post = (kind, content) =>
+    fetch('api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pin: S.pin, kind, content }) }).catch(() => {});
+  post('participantes', csvParticipants(S.bank, stats, { anonymous: ANON }));
+  post('preguntas', csvQuestions(S.bank, stats));
+  post('resultados', jsonExport(S.bank, stats, ANON ? undefined : { answers: answers(), confianza: confs() }, { anonymous: ANON }));
+}
+
+// Retoma la sesión guardada en el punto donde se quedó
+function resumeAt(saved) {
+  const q = Number.isInteger(saved.q) ? saved.q : -1;
+  const phase = saved.phase;
+  toast('Sesión recuperada');
+  if (phase === 'lobby' || q < 0) return enterLobby();
+  if (['report', 'report2', 'credits', 'sync'].includes(phase) || q >= total()) return startReport();
+  if (phase === 'chapter') return startChapter(q);
+  // La pregunta estaba en curso o ya revelada: se muestra su revelación con lo recibido
+  S.q = q;
+  S.phase = 'closed';
+  renderQuestion(q);
+  showScreen('question');
+  stageCenter();
+  net.setOpacity(0.3);
+  renderProgress();
+  $('#s-question').classList.add('enter');
+  showReveal(q);
 }
 
 // ── Preguntas alternativas (avanzado) ────────────────────────
@@ -202,9 +280,15 @@ $('#unlock-form').addEventListener('submit', async (e) => {
     const problems = validateBank(S.bank);
     if (problems.length) throw new Error(problems[0]);
     $('#pass').value = '';
-    await openRoom();
-    if ($('#skip-intro').checked) enterLobby();
-    else runPrologue();
+    const wantsResume = !!S.saved && $('input[name="resume"]:checked')?.value === '1';
+    const canResume = wantsResume && S.saved.fp === fingerprint(S.bank.questions);
+    await openRoom(canResume ? S.saved : null);
+    if (canResume) resumeAt(S.saved);
+    else {
+      if (wantsResume) toast('La sesión guardada usa otras preguntas; se inicia una nueva');
+      if ($('#skip-intro').checked) enterLobby();
+      else runPrologue();
+    }
   } catch (err) {
     errEl.textContent = friendlyError(err);
     btn.disabled = false;
@@ -223,24 +307,35 @@ function friendlyError(err) {
 // ── Sala ─────────────────────────────────────────────────────
 function pushState(state) {
   Promise.resolve(S.transport.setState(state)).catch((err) => toast(friendlyError(err)));
+  persist();
 }
 
-async function openRoom() {
+// saved: sesión guardada a reanudar (o null para una nueva)
+async function openRoom(saved = null) {
   S.fp = fingerprint(S.bank.questions);
   S.transport = createHost(S.mode);
-  S.pin = await S.transport.open();
+  S.pin = await S.transport.open(saved?.pin);
+  S.startedAt = saved?.startedAt || new Date().toISOString();
+  if (saved) S.transport.restore(saved);
   S.transport.onPlayers((p) => {
     S.real.players = p || {};
     onPlayersChanged();
+    persist();
   });
   S.transport.onAnswers((a) => {
     S.real.answers = a || {};
     onAnswersChanged();
+    persist();
   });
   S.transport.onConf((c) => {
     S.real.conf = c || {};
+    persist();
   });
-  await S.transport.setState({ phase: 'lobby', appName: CONFIG.appName, total: total(), identity: CONFIG.identity, askConfidence: CONFIG.askConfidence });
+  if (!saved) {
+    S.phase = 'lobby';
+    await S.transport.setState({ phase: 'lobby', appName: CONFIG.appName, total: total(), identity: CONFIG.identity, askConfidence: CONFIG.askConfidence });
+    persist(true);
+  }
   window.addEventListener('beforeunload', (e) => {
     if (S.phase !== 'unlock' && S.phase !== 'closed-room') {
       e.preventDefault();
@@ -799,6 +894,7 @@ async function startReport() {
   S.q = total();
   const stats = computeStats(S.bank, players(), answers(), confs());
   S.stats = stats;
+  saveExports(stats);
   pushState({
     phase: 'report', total: total(), teamIndex: stats.teamIndex,
     key: S.bank.questions.map((q) => q.correct),
@@ -975,8 +1071,10 @@ $('#exp-json').addEventListener('click', () => {
 $('#btn-close-room').addEventListener('click', async () => {
   if (!confirm('¿Cerrar la sala?\n\nDescarga antes los resultados: después no se podrán recuperar.')) return;
   try {
+    if (S.stats) saveExports(currentStats());
     await S.transport.close();
     S.phase = 'closed-room';
+    persist(true);
     toast('Sala cerrada');
   } catch (err) {
     toast(friendlyError(err));

@@ -76,6 +76,28 @@ export const store = {
   },
 };
 
+// Almacenamiento persistente (sobrevive a cerrar la pestaña)
+export const lstore = {
+  get(key, fallback = null) {
+    try {
+      const v = localStorage.getItem(key);
+      return v == null ? fallback : JSON.parse(v);
+    } catch {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {}
+  },
+  del(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch {}
+  },
+};
+
 // Animación de conteo numérico
 export function countUp(el, to, { duration = 1800, suffix = '' } = {}) {
   const start = performance.now();

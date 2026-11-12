@@ -1,14 +1,15 @@
 // ─────────────────────────────────────────────────────────────
 //  Servidor local de SINAPSIS (sin dependencias, sin internet)
 //
-//  Sirve la app y retransmite los mensajes en tiempo real entre la
-//  pantalla del anfitrión y los dispositivos de la misma red.
+//  Sirve la app, retransmite los mensajes en tiempo real entre la
+//  pantalla del anfitrión y los dispositivos de la misma red, y guarda
+//  la sesión y los resultados en la carpeta resultados/.
 //
 //  Uso:   node tools/servidor.mjs          (puerto 8080)
 //         node tools/servidor.mjs 3000     (otro puerto)
 // ─────────────────────────────────────────────────────────────
 import { createServer } from 'node:http';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile, stat, mkdir, writeFile, rename, readdir } from 'node:fs/promises';
 import { networkInterfaces, hostname } from 'node:os';
 import { extname, join, normalize, resolve, sep, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,6 +40,44 @@ const lanIps = () => {
   const real = all.filter((x) => !VIRTUAL.test(x.name));
   return (real.length ? real : all).map((x) => x.ip).sort((a, b) => rank(a) - rank(b));
 };
+
+// ── Guardado en disco (resultados/) ──────────────────────────
+const resultsDir = join(root, 'resultados');
+const sessionFiles = new Map(); // PIN → nombre base del archivo de la sesión
+const pad = (n) => String(n).padStart(2, '0');
+function stamp(d = new Date()) {
+  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+}
+function baseFor(pin) {
+  if (!sessionFiles.has(pin)) sessionFiles.set(pin, `sesion-${stamp()}-${pin}`);
+  return sessionFiles.get(pin);
+}
+// Escritura atómica: primero a un temporal y luego se renombra
+async function writeSafe(file, text) {
+  await mkdir(resultsDir, { recursive: true });
+  const tmp = `${file}.tmp`;
+  await writeFile(tmp, text, 'utf8');
+  await rename(tmp, file);
+}
+// Sesión más reciente que no se haya cerrado (para reanudar)
+async function latestOpenSession() {
+  let files = [];
+  try {
+    files = (await readdir(resultsDir)).filter((f) => /^sesion-\d{8}-\d{4}-\d{6}\.json$/.test(f));
+  } catch {
+    return null;
+  }
+  let best = null;
+  for (const f of files) {
+    const info = await stat(join(resultsDir, f));
+    if (!best || info.mtimeMs > best.mtime) best = { f, mtime: info.mtimeMs };
+  }
+  if (!best || Date.now() - best.mtime > 24 * 3600 * 1000) return null;
+  const data = JSON.parse(await readFile(join(resultsDir, best.f), 'utf8'));
+  if (data.phase === 'ended') return null;
+  sessionFiles.set(data.pin, best.f.replace(/\.json$/, ''));
+  return data;
+}
 
 // ── Retransmisión en tiempo real (Server-Sent Events) ────────
 const clients = new Set();
@@ -95,6 +134,50 @@ async function api(req, res, url) {
     }
     return;
   }
+
+  // ── Guardado: solo desde esta laptop (la consola del anfitrión) ──
+  if (['/api/save', '/api/session', '/api/export'].includes(url.pathname)) {
+    const ip = req.socket.remoteAddress || '';
+    if (!/^(127\.|::1$|::ffff:127\.)/.test(ip)) {
+      res.writeHead(403).end();
+      return;
+    }
+  }
+  if (url.pathname === '/api/session' && req.method === 'GET') {
+    try {
+      const data = await latestOpenSession();
+      if (!data) return res.writeHead(204).end();
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify(data));
+    } catch {
+      res.writeHead(204).end();
+    }
+    return;
+  }
+  if (url.pathname === '/api/save' && req.method === 'POST') {
+    try {
+      const data = JSON.parse(await readBody(req, 2 * 1024 * 1024));
+      if (!/^\d{6}$/.test(String(data.pin))) throw new Error('pin');
+      data.savedAt = new Date().toISOString();
+      await writeSafe(join(resultsDir, `${baseFor(data.pin)}.json`), JSON.stringify(data, null, 2));
+      res.writeHead(204).end();
+    } catch {
+      res.writeHead(400).end();
+    }
+    return;
+  }
+  if (url.pathname === '/api/export' && req.method === 'POST') {
+    try {
+      const { pin, kind, content } = JSON.parse(await readBody(req, 4 * 1024 * 1024));
+      const names = { participantes: 'participantes.csv', preguntas: 'preguntas.csv', resultados: 'resultados.json' };
+      if (!/^\d{6}$/.test(String(pin)) || !names[kind] || typeof content !== 'string') throw new Error('bad');
+      await writeSafe(join(resultsDir, `${baseFor(pin)}-${names[kind]}`), content);
+      res.writeHead(204).end();
+    } catch {
+      res.writeHead(400).end();
+    }
+    return;
+  }
   res.writeHead(404).end();
 }
 
@@ -106,8 +189,13 @@ const server = createServer(async (req, res) => {
     let path = decodeURIComponent(url.pathname);
     if (path.endsWith('/')) path += 'index.html';
     const file = normalize(join(root, path));
-    // Bloquea salir de la carpeta, la carpeta privada y archivos ocultos
-    if (!file.startsWith(root + sep) || file.startsWith(join(root, 'privado') + sep) || file.includes(`${sep}.`)) {
+    // Bloquea salir de la carpeta, las carpetas privada y de resultados, y archivos ocultos
+    if (
+      !file.startsWith(root + sep) ||
+      file.startsWith(join(root, 'privado') + sep) ||
+      file.startsWith(resultsDir + sep) ||
+      file.includes(`${sep}.`)
+    ) {
       res.writeHead(403).end('Prohibido');
       return;
     }
@@ -127,6 +215,8 @@ server.listen(port, () => {
   console.log(`  2) Comparte este link con tu equipo: http://${ips[0] || hostname()}:${port}`);
   if (ips.length > 1) console.log(`     (otras direcciones de esta laptop: ${ips.slice(1).map((ip) => `http://${ip}:${port}`).join('  ')})`);
   console.log(`     También puede funcionar: http://${hostname()}:${port}`);
+  console.log(`\n  La sesión y los resultados se guardan solos en: ${resultsDir}`);
+  console.log('  Si la consola se recarga o se cierra, al volver a entrar podrás continuar la sesión.');
   console.log('\n  Si Windows pregunta por el firewall, permite el acceso a Node.js en redes privadas o de dominio.');
   console.log('  Si tus compañeros no logran abrir el link, usa el modo sin conexión (códigos).');
   console.log('  Ctrl + C para detener.\n');

@@ -33,6 +33,14 @@ Requisito: [Node.js](https://nodejs.org) 18 o superior en la laptop del anfitri�
 4. Avanza con **Espacio** o **→**. Las respuestas llegan en tiempo real, en cada revelación se ve la distribución del equipo y al final cada quien ve su dossier.
 5. En el informe, mueve el mouse para ver los botones de descarga (Excel o respaldo completo) y pulsa **Cerrar sala**.
 
+### Todo se guarda solo
+
+- La sesión (participantes, respuestas y avance) se guarda continuamente en la carpeta **`resultados/`** de tu laptop.
+- **Si la consola se recarga, se cierra o se reinicia la laptop**, vuelve a abrir SINAPSIS: la pantalla de inicio ofrecerá **«Continuar donde se quedó»**, con los mismos participantes, respuestas y código de sala.
+- **Si un participante cierra su pestaña**, vuelve a abrir el link: se le ofrece «¿Eres Ana? Toca Entrar para continuar» y recupera su lugar y sus respuestas.
+- Al llegar al informe se guardan automáticamente en `resultados/` los archivos de Excel (participantes y preguntas) y un respaldo completo, aunque no los descargues.
+- La carpeta `resultados/` solo se puede abrir desde tu laptop (no desde otros equipos de la red) y no se sube al repositorio.
+
 > ⚠️ **`localhost` solo funciona en tu laptop.** A tu equipo comparte siempre el link con la IP que muestran la consola y el lobby.
 
 > ⚠️ **Firewall:** la primera vez, Windows puede preguntar si permites el acceso de Node.js a la red. Acepta para redes privadas o de dominio. Si la política de tu empresa lo bloquea y tus compañeros no logran abrir el link, usa el modo sin conexión.
