@@ -150,7 +150,7 @@ async function checkSavedSession() {
       saved.phase === 'lobby' || !(saved.q >= 0)
         ? 'en la sala de espera'
         : ['report', 'report2', 'credits', 'sync'].includes(saved.phase)
-          ? 'en el informe final'
+          ? 'en los resultados finales'
           : `en la pregunta ${saved.q + 1} de ${saved.total}`;
     const at = saved.savedAt ? new Date(saved.savedAt).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' }) : '';
     $('#resume-info').textContent = `${n} ${n === 1 ? 'participante' : 'participantes'} · ${where}${at ? ` · guardada a las ${at}` : ''}`;
@@ -231,7 +231,7 @@ async function loadBankFile(file) {
       if (problems.length) throw new Error(problems[0]);
       S.bank = obj;
       S.pendingPayload = null;
-      info.textContent = `Preguntas cargadas (${obj.questions.length}). Pulsa «Comenzar».`;
+      info.textContent = `Preguntas cargadas (${obj.questions.length}). Pulsa “Comenzar”.`;
     }
   } catch {
     info.textContent = 'Ese archivo no contiene preguntas válidas.';
@@ -380,7 +380,7 @@ function setupLobby() {
   $('#qr-card').classList.toggle('hidden', !url);
   if (OFFLINE()) {
     $('#step-1').textContent = url ? 'Escanea el código o abre el enlace' : 'Ábrelo desde el chat de la reunión';
-    $('#step-2').textContent = `${identityStep} y toca «Comenzar»`;
+    $('#step-2').textContent = `${identityStep} y toca “Comenzar”`;
     $('#step-3').textContent = 'Sigue esta pantalla y responde en tu dispositivo';
     $('#lobby-count').classList.add('hidden');
   } else {
@@ -541,9 +541,8 @@ async function runPrologue() {
   if (!alive()) return;
   net.bloom(Math.round(clamp((innerWidth * innerHeight) / 20000, 40, 110)), 3600);
   net.setZoom(1.12);
-  if (!(await proLine(alive, 'Cada día trabajamos junto a una inteligencia artificial.', 3200, { accentWords: ['inteligencia', 'artificial'] }))) return;
-  if (!(await proLine(alive, 'Modelos · Agentes · Workflows · Contexto', 2800, { stagger: 140, wide: true }))) return;
-  if (!(await proLine(alive, '¿Cuánto la entendemos realmente?', 2800, { accentWords: ['realmente'] }))) return;
+  if (!(await proLine(alive, 'La inteligencia artificial ya es parte de nuestro trabajo diario.', 3400, { accentWords: ['inteligencia', 'artificial'] }))) return;
+  if (!(await proLine(alive, 'Hoy medimos qué tanto la conocemos como equipo.', 3000, { accentWords: ['equipo'] }))) return;
   await wipe(() => {
     $('#pro-line').innerHTML = '';
     $('#title-card').classList.add('in');
@@ -732,10 +731,10 @@ async function showReveal(i) {
   if (my !== S.seq) return;
   const confTotal = st.confDist.reduce((a, b) => a + b, 0);
   const confText = confTotal
-    ? ` · Confianza: ${CONF_LABELS.map((l, k) => `${l.toLowerCase()} ${pct(st.confDist[k] / confTotal)}`).join(', ')}`
+    ? `. Confianza: ${CONF_LABELS.map((l, k) => `${l.toLowerCase()} ${pct(st.confDist[k] / confTotal)}`).join(', ')}`
     : '';
   $('#debrief-stat').innerHTML = OFFLINE()
-    ? 'La distribución del equipo aparecerá en el informe final'
+    ? 'La distribución del equipo se mostrará en los resultados finales'
     : st.n
       ? `<b>${pct(st.pct)}</b> del equipo acertó${esc(confText)}`
       : 'Nadie respondió esta pregunta';
@@ -860,13 +859,13 @@ function renderReport(stats) {
   const top = stats.strongest;
   const low = stats.weakest;
   $('#index-sub').innerHTML = stats.participants
-    ? `${stats.participants} participantes. Fortaleza: <b>${esc(top?.label || '—')}</b>. Mayor oportunidad: <b>${esc(low?.label || '—')}</b>.`
+    ? `${stats.participants} participantes<br>Área más fuerte: <b>${esc(top?.label || '—')}</b><br>Área por reforzar: <b>${esc(low?.label || '—')}</b>`
     : 'Aún no hay respuestas para analizar.';
   $('#mini-stats').innerHTML = [
     [pct(stats.responseRate), 'tasa de respuesta'],
-    [stats.hardest ? `P${stats.hardest.i + 1}` : '—', `más difícil${stats.hardest ? ` (${pct(stats.hardest.pct)})` : ''}`],
-    [stats.easiest ? `P${stats.easiest.i + 1}` : '—', `más sencilla${stats.easiest ? ` (${pct(stats.easiest.pct)})` : ''}`],
-    [stats.calib.total ? pct(stats.calib.falsa / stats.calib.total) : '—', 'falsa confianza'],
+    [stats.hardest ? `P${stats.hardest.i + 1}` : '—', `menos aciertos${stats.hardest ? ` (${pct(stats.hardest.pct)})` : ''}`],
+    [stats.easiest ? `P${stats.easiest.i + 1}` : '—', `más aciertos${stats.easiest ? ` (${pct(stats.easiest.pct)})` : ''}`],
+    [stats.calib.total ? pct(stats.calib.falsa / stats.calib.total) : '—', 'seguros e incorrectos'],
   ]
     .map(([b, s]) => `<div class="mini"><b>${b}</b><span>${s}</span></div>`)
     .join('');
@@ -878,13 +877,13 @@ function renderReport(stats) {
     ? `<ul class="mlist">${stats.misconceptions
         .map((m) => `<li><span class="share">${pct(m.share)}</span><span class="mtext"><span class="q">P${m.i + 1} · eligió ${m.letter}</span>${esc(m.text)}</span></li>`)
         .join('')}</ul>`
-    : '<p class="empty">No hubo una opción incorrecta dominante. Buena señal.</p>';
+    : '<p class="empty">Ninguna respuesta incorrecta reunió más del 20% de las elecciones.</p>';
   $('#recos').innerHTML = stats.recommendations.length
     ? `<ul class="rlist">${stats.recommendations
         .slice(0, 3)
         .map((d) => `<li><b>${esc(d.label)}<span>${pct(d.mastery)}</span></b>${esc(d.recommendation)}</li>`)
         .join('')}</ul>`
-    : '<p class="empty">Todas las áreas superan la meta del 70%. Siguiente paso: profundizar con casos avanzados.</p>';
+    : '<p class="empty">Todas las áreas superan la meta del 70%.</p>';
 }
 
 async function startReport() {
@@ -940,9 +939,7 @@ async function showCredits() {
     <div class="c-kicker">${esc(CONFIG.subtitle)}</div>
     <div class="c-rule"></div>
     <div class="c-kicker">Con la participación de</div>
-    ${names.length ? names.map((n) => `<div class="c-name">${esc(n)}</div>`).join('') : `<div class="c-name">${all.length} ingenieras e ingenieros</div>`}
-    <div class="c-rule"></div>
-    <div class="c-kicker">Diez preguntas · Cinco dominios · Un equipo</div>
+    ${names.length ? names.map((n) => `<div class="c-name">${esc(n)}</div>`).join('') : `<div class="c-name">${all.length} participantes</div>`}
   `;
   $('#credits-end').classList.remove('in');
   // Clave del dossier (modo sin conexión): permite a cada quien ver su resultado

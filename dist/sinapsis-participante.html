@@ -11,8 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
 /* ─────────────────────────────────────────────────────────────
-   SINAPSIS · Sistema visual base (tema claro corporativo)
-   Paleta de referencia HSBC — valida los valores con tu equipo de marca.
+   SINAPSIS · Sistema visual base (tema claro)
+   Paleta: rojo, rojo oscuro, negro y grises.
    ───────────────────────────────────────────────────────────── */
 :root {
   color-scheme: light;
@@ -37,8 +37,8 @@
   --opt-2: #575757;
   --opt-3: #ffffff;
 
-  --font: 'Univers Next for HSBC', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --display: 'Univers Next for HSBC', 'Inter Tight', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --display: 'Inter Tight', 'Inter', 'Segoe UI', system-ui, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -848,8 +848,8 @@ body.play {
     <section class="p-screen active" id="p-join">
       <div class="p-hero">
         <span class="kicker">Evaluación de IA</span>
-        <h1>Únete a la red</h1>
-        <p class="muted">Sin ranking ni ganadores. Tus respuestas alimentan un informe del equipo.</p>
+        <h1>Únete a la sesión</h1>
+        <p class="muted">Tus respuestas se suman a los resultados del equipo. No se muestran puntajes individuales.</p>
       </div>
       <form id="join-form" class="p-form" autocomplete="off">
         <div class="field" id="pin-field">
@@ -859,7 +859,7 @@ body.play {
         <div class="field" id="alias-field">
           <label for="alias" id="alias-label">Tu alias</label>
           <div class="alias-row">
-            <input id="alias" class="input" maxlength="24" placeholder="Nodo Prisma 42" />
+            <input id="alias" class="input" maxlength="24" placeholder="Ana G." />
             <button type="button" class="btn dice" id="dice" aria-label="Generar alias aleatorio" title="Alias aleatorio">
               <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>
             </button>
@@ -876,7 +876,7 @@ body.play {
       <div class="p-center">
         <div class="node-anim" aria-hidden="true"><span></span><span></span><span></span></div>
         <span class="kicker">Estás conectado</span>
-        <h2 id="wait-title">Bienvenido a la red</h2>
+        <h2 id="wait-title">Bienvenido</h2>
         <p class="muted">Mira la pantalla principal. La evaluación comenzará en breve.</p>
       </div>
     </section>
@@ -887,7 +887,7 @@ body.play {
         <span class="kicker" id="pc-kicker">Capítulo 01</span>
         <h2 class="p-domain" id="pc-domain">Modelos</h2>
         <div class="p-rule"></div>
-        <p class="muted">Prepárate…</p>
+        <p class="muted">La pregunta aparece en unos segundos.</p>
       </div>
     </section>
 
@@ -912,7 +912,7 @@ body.play {
       <div class="tiles" id="oq-tiles" aria-label="Progreso"></div>
       <h2 class="oq-title">¿Cuál es tu respuesta?</h2>
       <div class="pq-options oq-options" id="oq-options"></div>
-      <button class="btn btn-ghost btn-block" id="oq-skip">No alcancé a responder esta</button>
+      <button class="btn btn-ghost btn-block" id="oq-skip">No alcancé a responder</button>
     </section>
 
     <!-- Entre preguntas (modo sin conexión) -->
@@ -932,13 +932,13 @@ body.play {
       <div class="dossier">
         <span class="kicker">Evaluación completa</span>
         <h2>Tu código de resultados</h2>
-        <p class="muted">Cópialo y pégalo en el chat de la reunión. Con él se genera el informe del equipo.</p>
+        <p class="muted">Cópialo y pégalo en el chat de la reunión. Con él se generan los resultados del equipo.</p>
         <div class="code-box mono" id="code-text"></div>
         <button class="btn btn-primary btn-block" id="btn-copy">Copiar mensaje para el chat</button>
         <textarea id="copy-area" class="copy-area hidden" readonly rows="2"></textarea>
         <p class="small muted" id="copy-msg"></p>
         <div class="d-section">
-          <h3>Desbloquear mi dossier</h3>
+          <h3>Ver mis resultados</h3>
           <p class="muted">Al final, la pantalla principal mostrará una clave.</p>
           <div class="alias-row">
             <input id="key-input" class="input mono" placeholder="ABCD-ABCD-AB0" autocomplete="off" autocapitalize="characters" spellcheck="false" />
@@ -989,23 +989,22 @@ body.play {
     <!-- Dossier personal -->
     <section class="p-screen" id="p-dossier">
       <div class="dossier">
-        <span class="kicker">Tu dossier · privado</span>
-        <h2>Tu resultado</h2>
+        <span class="kicker">Tus resultados · solo los ves tú</span>
+        <h2>Resumen</h2>
         <div class="d-score"><span id="d-score">0</span><small id="d-total">/ 10</small></div>
         <p class="muted" id="d-sub"></p>
         <div class="d-section">
-          <h3>Por dominio</h3>
+          <h3>Por área</h3>
           <div id="d-domains"></div>
         </div>
         <div class="d-section">
-          <h3>Calibración</h3>
+          <h3>Confianza</h3>
           <p id="d-calib"></p>
         </div>
         <div class="d-section" id="d-recos-wrap">
-          <h3>Para seguir aprendiendo</h3>
+          <h3>Temas para reforzar</h3>
           <ul id="d-recos"></ul>
         </div>
-        <p class="d-foot">Solo tú ves este dossier. No hay ranking.</p>
         <button class="btn btn-ghost hidden" id="d-back">Volver a mi código</button>
       </div>
     </section>
@@ -1021,7 +1020,7 @@ body.play {
   </main>
 
   <script>
-window.SINAPSIS_PUBLICO = {"app":"sinapsis","title":"SINAPSIS · Evaluación de IA","fp":167,"total":10,"qdomains":["Modelos","Agentes y workflows","Agentes y workflows","Agentes y workflows","Protocolos","Contexto","Modelos","Seguridad y gobierno","Contexto","Seguridad y gobierno"],"recos":[{"label":"Modelos","text":"Taller de selección de modelos: capacidad, latencia y costo, y cuándo activar el razonamiento."},{"label":"Agentes y workflows","text":"Taller de patrones: workflows frente a agentes autónomos y diseño de herramientas (tool use)."},{"label":"Protocolos","text":"Introducción práctica a MCP y A2A con herramientas internas aprobadas."},{"label":"Contexto","text":"Ingeniería de contexto: presupuesto de tokens, compactación, memoria externa y system prompts."},{"label":"Seguridad y gobierno","text":"Prompt injection, mínimo privilegio, aprobación humana y clasificación de datos en herramientas de IA."}]};
+window.SINAPSIS_PUBLICO = {"app":"sinapsis","title":"SINAPSIS · Evaluación de IA","fp":195,"total":10,"qdomains":["Modelos","Agentes y workflows","Agentes y workflows","Agentes y workflows","Protocolos","Contexto","Modelos","Seguridad y gobierno","Contexto","Seguridad y gobierno"],"recos":[{"label":"Modelos","text":"Taller de selección de modelos: capacidad, latencia y costo, y cuándo activar el razonamiento."},{"label":"Agentes y workflows","text":"Taller de patrones: workflows frente a agentes autónomos y diseño de herramientas (tool use)."},{"label":"Protocolos","text":"Introducción práctica a MCP y A2A con herramientas internas aprobadas."},{"label":"Contexto","text":"Ingeniería de contexto: presupuesto de tokens, compactación, memoria externa y system prompts."},{"label":"Seguridad y gobierno","text":"Prompt injection, mínimo privilegio, aprobación humana y clasificación de datos en herramientas de IA."}]};
 (() => {
 const __m = {};
 __m['config'] = (() => {
@@ -1115,11 +1114,12 @@ function uid() {
   return 'u' + Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-const ALIAS_A = ['Nodo', 'Vector', 'Tensor', 'Kernel', 'Neurona', 'Token', 'Agente', 'Prompt', 'Sinapsis', 'Módulo', 'Cluster', 'Píxel'];
-const ALIAS_B = ['Rojo', 'Ágil', 'Norte', 'Alfa', 'Delta', 'Sigma', 'Lúcido', 'Veloz', 'Sereno', 'Prisma', 'Cobalto', 'Austral'];
+// Nombres para los participantes simulados del ensayo (y alias sugeridos)
+const NAMES = ['Ana', 'Luis', 'Carla', 'Jorge', 'Mariana', 'Diego', 'Sofía', 'Andrés', 'Valeria', 'Ricardo', 'Fernanda', 'Pablo', 'Daniela', 'Miguel', 'Lucía', 'Héctor', 'Paola', 'Raúl', 'Gabriela', 'Óscar', 'Elena', 'Iván', 'Natalia', 'Tomás'];
+const INITIALS = 'ABCDEFGHJLMNOPRSTV';
 function randomAlias() {
-  const r = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  return `${r(ALIAS_A)} ${r(ALIAS_B)} ${Math.floor(10 + Math.random() * 90)}`;
+  const name = NAMES[Math.floor(Math.random() * NAMES.length)];
+  return `${name} ${INITIALS[Math.floor(Math.random() * INITIALS.length)]}.`;
 }
 
 function download(filename, text, mime = 'text/plain') {
@@ -1702,7 +1702,7 @@ async function init() {
     if (last && store.get(tabKey(pin)) === last) joinRed(pin, last, { silent: true });
     else if (last && !ANON) {
       aliasInput.value = last;
-      $('#alias-hint').textContent = `¿Eres ${last}? Toca «Entrar» para continuar donde te quedaste.`;
+      $('#alias-hint').textContent = `¿Eres ${last}? Toca “Entrar” para continuar donde te quedaste.`;
     }
   } else {
     $('#pin-field').classList.add('hidden');
@@ -1772,7 +1772,7 @@ async function joinRed(pin, alias, { silent = false } = {}) {
     store.set(tabKey(pin), alias);
     save();
     setMeChip(alias);
-    $('#wait-title').textContent = ANON ? 'Bienvenido a la red' : `Bienvenido, ${alias}`;
+    $('#wait-title').textContent = ANON ? 'Bienvenido' : `Bienvenido, ${alias}`;
     show('wait');
     vibrate(30);
     P.transport.onState(onState);
@@ -1948,7 +1948,7 @@ function onReveal(s) {
     $('#pr-title').textContent = 'Correcto';
     $('#pr-answer').innerHTML = `Elegiste ${right}`;
   } else {
-    $('#pr-title').textContent = 'No esta vez';
+    $('#pr-title').textContent = 'Respuesta incorrecta';
     $('#pr-answer').innerHTML = `Elegiste ${LETTERS[mine]}. La respuesta correcta era ${right}`;
   }
   $('#pr-expl').textContent = s.explanation || '';
@@ -2187,10 +2187,10 @@ function renderDossier({ total, key, qdomains, recos, answers, confs }) {
     .join('');
   requestAnimationFrame(() => requestAnimationFrame(() => $$('.bar-fg').forEach((b) => (b.style.width = b.dataset.w + '%'))));
   let calib;
-  if (sureWrong >= 2) calib = `Ojo: en ${sureWrong} respuestas estabas seguro y no acertaste. Son los temas que más vale la pena repasar.`;
-  else if (sureWrong === 1) calib = 'En una respuesta estabas seguro y no acertaste. Revisa ese tema con calma.';
-  else if (sureRight > 0) calib = 'Tu confianza está bien calibrada: cuando estabas seguro, acertaste.';
-  else calib = 'Indicaste dudas en tus respuestas; el debrief de cada pregunta es un buen punto de partida.';
+  if (sureWrong >= 2) calib = `En ${sureWrong} respuestas marcaste “Seguro” y no acertaste. Conviene repasar esos temas.`;
+  else if (sureWrong === 1) calib = 'En una respuesta marcaste “Seguro” y no acertaste. Conviene repasar ese tema.';
+  else if (sureRight > 0) calib = 'Cuando marcaste “Seguro”, acertaste.';
+  else calib = 'Marcaste dudas en tus respuestas. Las explicaciones de cada pregunta te ayudarán a repasar.';
   $('#d-calib').textContent = calib;
   const list = (recos || []).filter((r) => {
     const v = dom[r.label];

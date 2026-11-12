@@ -1,155 +1,118 @@
-# SINAPSIS · Evaluación de Inteligencia Artificial
+# SINAPSIS
 
-Evaluación al estilo de una sesión en vivo, **sin carrera ni ganador**. El anfitrión proyecta la pantalla, los ingenieros responden desde su celular o laptop, y al final se obtiene un **Informe de Inteligencia Colectiva** con lo que sabe el equipo.
+Evaluación de conocimientos de inteligencia artificial para equipos de ingeniería, conducida en vivo. El anfitrión proyecta la sesión, cada participante responde desde su celular o laptop y al final se presentan los resultados del equipo. No hay ranking ni puntajes individuales en pantalla.
 
-**No necesita ninguna plataforma externa**: ni Firebase, ni bases de datos, ni cuentas. Tu laptop sirve la app dentro de la red de la oficina.
+- 10 preguntas sobre modelos, agentes y workflows, protocolos (MCP y A2A), manejo de contexto, y seguridad y gobierno.
+- Tras cada pregunta se muestra la respuesta correcta, cómo respondió el equipo y una explicación.
+- Resultados del equipo: promedio de aciertos, aciertos por área y por pregunta, relación entre confianza y acierto, respuestas incorrectas más elegidas y temas de capacitación sugeridos.
+- Cada participante ve sus propios resultados al final, en su dispositivo.
+- No depende de servicios externos: la laptop del anfitrión sirve la aplicación dentro de la red de la oficina.
 
-- 10 preguntas sobre **modelos, agentes y workflows, protocolos (MCP/A2A), contexto, y seguridad y gobierno**.
-- Tema claro corporativo con la paleta roja, negra y gris de referencia. Valida los valores con tu equipo de marca.
-- Prólogo cinematográfico, cortinillas rojas, red neuronal con la constelación de participantes y sonido sintetizado (sin música con derechos de autor).
-- Informe: índice del equipo, dominio por área, **matriz de calibración** (confianza vs. acierto), acierto por pregunta, distribución de puntajes, confusiones frecuentes y recomendaciones de capacitación.
-- Cada participante recibe un **dossier privado** en su dispositivo.
-- Exportación a CSV (Excel) y JSON.
+## Requisitos
 
----
+- [Node.js](https://nodejs.org) 18 o superior en la laptop del anfitrión.
+- Que los participantes estén en la misma red que esa laptop.
 
-## Cómo usarlo (en vivo, en la red de la oficina) ✅
+## Uso
 
-Requisito: [Node.js](https://nodejs.org) 18 o superior en la laptop del anfitrión.
+1. Ejecuta `iniciar.bat` (o `node tools/servidor.mjs`). La consola muestra la dirección para compartir, por ejemplo:
 
-1. Haz doble clic en **`iniciar.bat`**, o ejecuta:
-   ```bash
-   node tools/servidor.mjs
-   ```
-   La consola muestra algo como:
    ```
    1) Abre la consola del anfitrión:   http://localhost:8080/host.html
    2) Comparte este link con tu equipo: http://10.20.30.40:8080
    ```
-2. Se abre la consola del anfitrión. Escribe la **clave de la sesión** (está en `privado/clave.txt`) y pulsa **Comenzar**.
-3. **Comparte el link** (por ejemplo `http://10.20.30.40:8080`) en el chat, o deja que escaneen el QR del lobby.
-   - Cada persona abre el link, **escribe su nombre** y toca **Entrar**. No hay PIN ni configuración: la sala se encuentra sola.
-   - Su nombre aparece en la constelación del lobby.
-4. Avanza con **Espacio** o **→**. Las respuestas llegan en tiempo real, en cada revelación se ve la distribución del equipo y al final cada quien ve su dossier.
-5. En el informe, mueve el mouse para ver los botones de descarga (Excel o respaldo completo) y pulsa **Cerrar sala**.
 
-### Todo se guarda solo
+2. En la consola del anfitrión, escribe la clave de la sesión y pulsa **Comenzar**.
+3. Comparte el enlace o deja que escaneen el código QR. Cada participante escribe su nombre y entra.
+4. Avanza con la barra espaciadora o la flecha derecha.
+5. En los resultados, mueve el mouse para ver las opciones de descarga y, al terminar, pulsa **Cerrar sala**.
 
-- La sesión (participantes, respuestas y avance) se guarda continuamente en la carpeta **`resultados/`** de tu laptop.
-- **Si la consola se recarga, se cierra o se reinicia la laptop**, vuelve a abrir SINAPSIS: la pantalla de inicio ofrecerá **«Continuar donde se quedó»**, con los mismos participantes, respuestas y código de sala.
-- **Si un participante cierra su pestaña**, vuelve a abrir el link: se le ofrece «¿Eres Ana? Toca Entrar para continuar» y recupera su lugar y sus respuestas.
-- Al llegar al informe se guardan automáticamente en `resultados/` los archivos de Excel (participantes y preguntas) y un respaldo completo, aunque no los descargues.
-- La carpeta `resultados/` solo se puede abrir desde tu laptop (no desde otros equipos de la red) y no se sube al repositorio.
+`localhost` solo funciona en la laptop del anfitrión. A los participantes se les comparte la dirección con la IP que muestran la consola y la sala.
 
-> ⚠️ **`localhost` solo funciona en tu laptop.** A tu equipo comparte siempre el link con la IP que muestran la consola y el lobby.
+Si Windows pregunta por el firewall la primera vez, permite el acceso de Node.js a redes privadas o de dominio.
 
-> ⚠️ **Firewall:** la primera vez, Windows puede preguntar si permites el acceso de Node.js a la red. Acepta para redes privadas o de dominio. Si la política de tu empresa lo bloquea y tus compañeros no logran abrir el link, usa el modo sin conexión.
-
-### Controles del anfitrión
+### Controles
 
 | Tecla | Acción |
 |---|---|
-| Espacio / → / Av Pág | Continuar (saltar prólogo, iniciar, cerrar respuestas, siguiente) |
+| Espacio, → o Av Pág | Continuar |
 | M | Activar o silenciar el sonido |
 | F | Pantalla completa |
-| B | Agregar participantes de ensayo (en el lobby) |
+| B | Agregar participantes simulados (en la sala de espera) |
 
-Los botones del anfitrión (sonido, pantalla completa, simular participantes y descargas del informe) **aparecen solo al mover el mouse**, para que la pantalla proyectada se vea limpia.
+Los botones del anfitrión aparecen al mover el mouse y se ocultan solos para que la pantalla proyectada se vea limpia.
 
-**Ensayo:** en el lobby pulsa **B** (o mueve el mouse y elige **Simular participantes**) para simular 24 personas y ver el informe completo antes de la sesión real.
+### Guardado y recuperación
 
----
+- La sesión se guarda de forma continua en la carpeta `resultados/`.
+- Si la consola se recarga o se cierra, al volver a entrar se ofrece **Continuar donde se quedó**, con los mismos participantes, respuestas y código de sala.
+- Si un participante cierra su pestaña, vuelve a abrir el enlace y recupera su lugar con el mismo nombre.
+- Al llegar a los resultados se guardan automáticamente dos archivos de Excel (participantes y preguntas) y un respaldo completo.
+- La carpeta `resultados/` solo es accesible desde la laptop del anfitrión y no forma parte del repositorio.
 
-## Alternativa: modo sin conexión (códigos)
+## Modo sin conexión
 
-Úsalo si la red no permite que otros equipos se conecten a tu laptop.
+Si la red no permite que otros equipos se conecten a la laptop del anfitrión:
 
-1. Abre `dist/sinapsis-anfitrion.html` con doble clic y comparte `dist/sinapsis-participante.html` en el chat.
-2. Cada persona responde en su dispositivo siguiendo tu pantalla.
-3. Al final, cada quien toca **Copiar mensaje** y lo pega en el chat (`SINAPSIS · Nombre · SNP-…`).
-4. En la pantalla de **Sincronización** pulsa **Pegar códigos del chat**, pega todo el chat y genera el informe.
-5. En los créditos aparece una **clave** para que cada persona desbloquee su dossier.
+1. Abre `dist/sinapsis-anfitrion.html` y comparte `dist/sinapsis-participante.html` con el equipo.
+2. Cada participante responde en su dispositivo siguiendo la pantalla del anfitrión.
+3. Al final, cada uno copia su código de resultados en el chat de la reunión.
+4. El anfitrión pega los códigos en la pantalla de envío de resultados y se generan los resultados del equipo.
 
----
+## Preguntas
 
-## Editar las preguntas
+Las preguntas publicadas están cifradas en `data/banco.enc.json`, de modo que las respuestas no son visibles en el código. La versión editable vive en `privado/banco.json`, que no forma parte del repositorio.
 
-El banco que se publica está **cifrado** (`data/banco.enc.json`, AES-GCM 256): nadie puede leer las respuestas en el código. La versión editable es `privado/banco.json`, que no se sube al repositorio.
+Para modificarlas:
 
-1. Edita `privado/banco.json`. En `reserve` hay 3 preguntas de reserva. Cada pregunta tiene esta forma:
-   ```json
-   {
-     "domain": "contexto",
-     "level": "Avanzado",
-     "difficulty": 3,
-     "text": "Pregunta…",
-     "options": ["A", "B", "C", "D"],
-     "correct": 0,
-     "explanation": "Debrief que se muestra al revelar."
-   }
-   ```
-   `correct` vale 0 para A, 1 para B, 2 para C y 3 para D.
-2. Cifra y regenera los archivos:
-   ```bash
-   node tools/cifrar.mjs
-   ```
-   ```bash
-   node tools/empaquetar.mjs
-   ```
+```bash
+node tools/cifrar.mjs
+```
 
-También puedes abrir `http://localhost:8080/tools/cifrar.html` para editar y cifrar desde el navegador, o arrastrar `privado/banco.json` sobre la pantalla de inicio de la consola para usarlo directamente.
+```bash
+node tools/empaquetar.mjs
+```
 
----
+El primer comando cifra el banco y actualiza `data/`; el segundo regenera los archivos de `dist/`. También es posible editar y cifrar desde el navegador con `tools/cifrar.html`.
 
-## Configuración (`js/config.js`)
+Formato de cada pregunta (`correct` vale 0 para A, 1 para B, 2 para C y 3 para D):
 
-| Opción | Para qué sirve |
+```json
+{
+  "domain": "contexto",
+  "level": "Avanzado",
+  "difficulty": 3,
+  "text": "Pregunta",
+  "options": ["A", "B", "C", "D"],
+  "correct": 0,
+  "explanation": "Explicación que se muestra al revelar la respuesta."
+}
+```
+
+## Configuración
+
+Las opciones están en `js/config.js`:
+
+| Opción | Descripción |
 |---|---|
 | `appName`, `subtitle`, `org` | Textos de pantalla |
-| `logoUrl` | Logo aprobado (vacío por defecto) |
-| `questionSeconds` | Segundos por pregunta (40). El tiempo **no** da puntos |
+| `logoUrl` | Ruta a un logotipo (vacío por defecto) |
+| `questionSeconds` | Segundos por pregunta |
 | `identity` | `'nombre'`, `'alias'` o `'anonimo'` |
-| `askConfidence` | Preguntar "¿qué tan seguro estás?" para la matriz de calibración |
-| `mode` | `'auto'` (red local si hay servidor; si no, códigos), `'red'` o `'codigos'` |
+| `askConfidence` | Preguntar el nivel de confianza después de cada respuesta |
+| `mode` | `'auto'`, `'red'` o `'codigos'` |
 
-Después de cambiar la configuración, ejecuta `node tools/empaquetar.mjs` para actualizar `dist/`.
-
----
-
-## Privacidad y datos
-
-- [ ] Nada sale de la red de la oficina: los datos viajan entre tu laptop y los dispositivos de tus compañeros.
-- [ ] Pide solo el nombre de pila. La app rechaza correos y números largos.
-- [ ] Al terminar, exporta los resultados y pulsa **Cerrar sala**.
-- [ ] Guarda los CSV y JSON exportados en una ubicación aprobada.
-- [ ] La carpeta `privado/` (banco editable y clave) **no se sube al repositorio**.
-
----
+Después de cambiar la configuración, ejecuta `node tools/empaquetar.mjs`.
 
 ## Estructura
 
 ```
-index.html                  Lleva directo a la página del participante
-host.html · play.html       Consola del anfitrión · página del participante
-css/                        Estilos
-js/config.js                Configuración
-js/host.js · js/play.js     Flujos del anfitrión y del participante
-js/transport.js             Tiempo real por red local
-js/codes.js                 Códigos de resultados (modo sin conexión)
-js/stats.js · js/charts.js  Estadísticas, exportación y gráficas
-js/network.js · js/audio.js Red neuronal animada y sonido
-js/crypto.js                Cifrado del banco
-data/banco.enc.json         Banco cifrado
-data/publico.json           Datos sin respuestas para el dossier
-dist/                       Archivos autónomos (modo sin conexión)
-privado/                    Banco editable y clave (NO se sube)
-tools/                      Servidor local, cifrado y empaquetado
+index.html          Redirige a la página del participante
+host.html           Consola del anfitrión
+play.html           Página del participante
+css/                Estilos
+js/                 Lógica de la aplicación
+data/               Preguntas cifradas y datos públicos
+dist/               Versión de archivos independientes (modo sin conexión)
+tools/              Servidor local, cifrado y empaquetado
 ```
-
-## Solución de problemas
-
-- **Mis compañeros no abren el link**: confirma que usas la IP y no `localhost`, que estén en la misma red y que el firewall permita Node.js.
-- **«La sala aún no está abierta»**: abre la sala en la consola del anfitrión y pide que recarguen la página.
-- **"Clave incorrecta"**: revisa `privado/clave.txt`.
-- **No suena nada**: el navegador exige una interacción previa. Pulsa **M** o haz clic en la pantalla.
-- **No recargues la consola del anfitrión** durante la sesión: el navegador te pedirá confirmar.

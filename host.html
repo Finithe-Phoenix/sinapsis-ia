@@ -87,7 +87,7 @@
       <div class="lobby-grid">
         <div class="lobby-left">
           <span class="kicker">Sala abierta</span>
-          <h1 class="lobby-title">Únete<br />a la red</h1>
+          <h1 class="lobby-title">Únete<br />a la sesión</h1>
           <div class="join-card">
             <div class="qr-card" id="qr-card"><div id="qr" class="qr"></div></div>
             <div class="join-info">
@@ -103,7 +103,7 @@
           </ol>
         </div>
         <div class="lobby-stage">
-          <p class="stage-note">Sin ranking ni ganadores · mediremos lo que sabemos <em>como equipo</em></p>
+          <p class="stage-note">Los resultados se muestran como equipo, sin puntajes individuales</p>
           <div class="stage-foot">
             <div class="count" id="lobby-count"><span id="player-count">0</span><span class="count-label" id="count-label">participantes conectados</span></div>
             <div class="lobby-actions">
@@ -157,7 +157,7 @@
           </div>
           <div>
             <div class="debrief-head">
-              <span class="kicker">Debrief</span>
+              <span class="kicker">Explicación</span>
               <span class="debrief-stat" id="debrief-stat"></span>
             </div>
             <p id="debrief-text"></p>
@@ -168,24 +168,24 @@
     </section>
 
     <!-- 4b · Sincronización (modo sin conexión) -->
-    <section class="screen" id="s-sync" aria-label="Sincronización de resultados">
+    <section class="screen" id="s-sync" aria-label="Envío de resultados">
       <div class="sync-grid">
         <div>
-          <span class="kicker">Sincronización</span>
+          <span class="kicker">Envío de resultados</span>
           <h1 class="sync-title">Envía tu código de resultados</h1>
           <ol class="steps">
             <li><span class="step-n">1</span><span>En tu dispositivo aparece un código como <strong class="mono">SNP-7K2Q-M9XA-3F0D-1A</strong></span></li>
             <li><span class="step-n">2</span><span>Toca <strong>Copiar mensaje</strong> y pégalo en el chat de la reunión</span></li>
-            <li><span class="step-n">3</span><span>Cuando todos lo envíen, generaremos el informe del equipo</span></li>
+            <li><span class="step-n">3</span><span>Cuando todos lo envíen, se mostrarán los resultados del equipo</span></li>
           </ol>
-          <p class="lobby-note">El código solo contiene tus respuestas y tu nombre. No hay ranking.</p>
+          <p class="lobby-note">El código solo contiene tus respuestas y tu nombre.</p>
         </div>
         <div class="sync-side">
           <div class="sync-count"><span id="sync-count">0</span><span class="count-label">resultados recibidos</span></div>
           <div class="chips sync-chips" id="sync-chips" aria-live="polite"></div>
           <div class="sync-actions">
             <button class="btn" id="btn-paste">Pegar códigos del chat</button>
-            <button class="btn btn-primary" id="btn-report">Generar informe</button>
+            <button class="btn btn-primary" id="btn-report">Ver resultados</button>
           </div>
           <p class="small muted" id="sync-msg"></p>
         </div>
@@ -193,14 +193,14 @@
     </section>
 
     <!-- 5 · Informe (1/2) -->
-    <section class="screen report" id="s-report1" aria-label="Informe del equipo">
+    <section class="screen report" id="s-report1" aria-label="Resultados del equipo">
       <div class="report-head">
-        <span class="kicker">Informe de inteligencia colectiva · 1 / 2</span>
-        <h2>Lo que sabemos como equipo</h2>
+        <span class="kicker">Resultados del equipo · 1 de 2</span>
+        <h2>Panorama general</h2>
       </div>
       <div class="r1-grid">
         <div class="panel index-panel">
-          <div class="panel-label">Índice de conocimiento del equipo</div>
+          <div class="panel-label">Promedio de aciertos</div>
           <div class="gauge">
             <svg viewBox="0 0 220 220" aria-hidden="true">
               <circle class="g-track" cx="110" cy="110" r="96" />
@@ -213,33 +213,33 @@
           <div class="mini-stats" id="mini-stats"></div>
         </div>
         <div class="panel">
-          <div class="panel-label">Dominio por área</div>
+          <div class="panel-label">Aciertos por área</div>
           <div id="radar" class="chart"></div>
         </div>
         <div class="panel">
-          <div class="panel-label">Matriz de calibración <span class="panel-hint">confianza vs. acierto</span></div>
+          <div class="panel-label">Confianza frente a acierto</div>
           <div id="calib"></div>
         </div>
       </div>
     </section>
 
     <!-- 6 · Informe (2/2) -->
-    <section class="screen report" id="s-report2" aria-label="Detalle del informe">
+    <section class="screen report" id="s-report2" aria-label="Detalle de resultados">
       <div class="report-head">
-        <span class="kicker">Informe de inteligencia colectiva · 2 / 2</span>
+        <span class="kicker">Resultados del equipo · 2 de 2</span>
         <h2>Dónde enfocar la capacitación</h2>
       </div>
       <div class="r2-grid">
         <div class="panel span-2">
-          <div class="panel-label">Acierto por pregunta <span class="panel-hint">línea punteada = meta 70%</span></div>
+          <div class="panel-label">Aciertos por pregunta <span class="panel-hint">Meta: 70%</span></div>
           <div id="qbars" class="chart"></div>
         </div>
         <div class="panel">
-          <div class="panel-label">Distribución de puntajes</div>
+          <div class="panel-label">Aciertos por persona</div>
           <div id="histo" class="chart"></div>
         </div>
         <div class="panel">
-          <div class="panel-label">Confusiones más frecuentes</div>
+          <div class="panel-label">Respuestas incorrectas más elegidas</div>
           <div id="miscon"></div>
         </div>
         <div class="panel span-2">
@@ -254,14 +254,13 @@
       <div class="credits-roll" id="credits-roll"></div>
       <div class="credits-end" id="credits-end">
         <span class="wordmark"><span class="dot"></span><span class="app-name">SINAPSIS</span></span>
-        <h2>Gracias</h2>
-        <p>Seguimos aprendiendo juntos.</p>
+        <h2>Gracias por participar</h2>
         <div class="dossier-key hidden" id="dossier-key">
           <div id="key-qr" class="key-qr"></div>
           <div>
-            <div class="pin-label">Clave para desbloquear tu dossier</div>
+            <div class="pin-label">Clave para ver tus resultados</div>
             <div class="key-text mono" id="key-text"></div>
-            <div class="small muted">Escríbela en tu dispositivo, en «Desbloquear mi dossier».</div>
+            <div class="small muted">Escríbela en tu dispositivo, en “Ver mis resultados”.</div>
           </div>
         </div>
       </div>
@@ -282,7 +281,7 @@
     <form method="dialog" id="paste-form">
       <h3>Pegar códigos</h3>
       <p class="small muted">Copia los mensajes del chat (puedes seleccionar todo) y pégalos aquí. Se detectan los códigos y se ignoran los duplicados.</p>
-      <textarea id="paste-text" rows="10" spellcheck="false" placeholder="SINAPSIS · Nodo Prisma 42 · SNP-7K2Q-M9XA-3F0D-1A"></textarea>
+      <textarea id="paste-text" rows="10" spellcheck="false" placeholder="SINAPSIS · Ana G. · SNP-7K2Q-M9XA-3F0D-1A"></textarea>
       <div class="dialog-actions">
         <button class="btn btn-ghost" value="cancel" formnovalidate>Cancelar</button>
         <button class="btn btn-primary" id="paste-ok" value="ok">Agregar códigos</button>

@@ -35,11 +35,12 @@ export function uid() {
   return 'u' + Array.from(a, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-const ALIAS_A = ['Nodo', 'Vector', 'Tensor', 'Kernel', 'Neurona', 'Token', 'Agente', 'Prompt', 'Sinapsis', 'Módulo', 'Cluster', 'Píxel'];
-const ALIAS_B = ['Rojo', 'Ágil', 'Norte', 'Alfa', 'Delta', 'Sigma', 'Lúcido', 'Veloz', 'Sereno', 'Prisma', 'Cobalto', 'Austral'];
+// Nombres para los participantes simulados del ensayo (y alias sugeridos)
+const NAMES = ['Ana', 'Luis', 'Carla', 'Jorge', 'Mariana', 'Diego', 'Sofía', 'Andrés', 'Valeria', 'Ricardo', 'Fernanda', 'Pablo', 'Daniela', 'Miguel', 'Lucía', 'Héctor', 'Paola', 'Raúl', 'Gabriela', 'Óscar', 'Elena', 'Iván', 'Natalia', 'Tomás'];
+const INITIALS = 'ABCDEFGHJLMNOPRSTV';
 export function randomAlias() {
-  const r = (arr) => arr[Math.floor(Math.random() * arr.length)];
-  return `${r(ALIAS_A)} ${r(ALIAS_B)} ${Math.floor(10 + Math.random() * 90)}`;
+  const name = NAMES[Math.floor(Math.random() * NAMES.length)];
+  return `${name} ${INITIALS[Math.floor(Math.random() * INITIALS.length)]}.`;
 }
 
 export function download(filename, text, mime = 'text/plain') {

@@ -24,8 +24,8 @@
     <section class="p-screen active" id="p-join">
       <div class="p-hero">
         <span class="kicker">Evaluación de IA</span>
-        <h1>Únete a la red</h1>
-        <p class="muted">Sin ranking ni ganadores. Tus respuestas alimentan un informe del equipo.</p>
+        <h1>Únete a la sesión</h1>
+        <p class="muted">Tus respuestas se suman a los resultados del equipo. No se muestran puntajes individuales.</p>
       </div>
       <form id="join-form" class="p-form" autocomplete="off">
         <div class="field" id="pin-field">
@@ -35,7 +35,7 @@
         <div class="field" id="alias-field">
           <label for="alias" id="alias-label">Tu alias</label>
           <div class="alias-row">
-            <input id="alias" class="input" maxlength="24" placeholder="Nodo Prisma 42" />
+            <input id="alias" class="input" maxlength="24" placeholder="Ana G." />
             <button type="button" class="btn dice" id="dice" aria-label="Generar alias aleatorio" title="Alias aleatorio">
               <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>
             </button>
@@ -52,7 +52,7 @@
       <div class="p-center">
         <div class="node-anim" aria-hidden="true"><span></span><span></span><span></span></div>
         <span class="kicker">Estás conectado</span>
-        <h2 id="wait-title">Bienvenido a la red</h2>
+        <h2 id="wait-title">Bienvenido</h2>
         <p class="muted">Mira la pantalla principal. La evaluación comenzará en breve.</p>
       </div>
     </section>
@@ -63,7 +63,7 @@
         <span class="kicker" id="pc-kicker">Capítulo 01</span>
         <h2 class="p-domain" id="pc-domain">Modelos</h2>
         <div class="p-rule"></div>
-        <p class="muted">Prepárate…</p>
+        <p class="muted">La pregunta aparece en unos segundos.</p>
       </div>
     </section>
 
@@ -88,7 +88,7 @@
       <div class="tiles" id="oq-tiles" aria-label="Progreso"></div>
       <h2 class="oq-title">¿Cuál es tu respuesta?</h2>
       <div class="pq-options oq-options" id="oq-options"></div>
-      <button class="btn btn-ghost btn-block" id="oq-skip">No alcancé a responder esta</button>
+      <button class="btn btn-ghost btn-block" id="oq-skip">No alcancé a responder</button>
     </section>
 
     <!-- Entre preguntas (modo sin conexión) -->
@@ -108,13 +108,13 @@
       <div class="dossier">
         <span class="kicker">Evaluación completa</span>
         <h2>Tu código de resultados</h2>
-        <p class="muted">Cópialo y pégalo en el chat de la reunión. Con él se genera el informe del equipo.</p>
+        <p class="muted">Cópialo y pégalo en el chat de la reunión. Con él se generan los resultados del equipo.</p>
         <div class="code-box mono" id="code-text"></div>
         <button class="btn btn-primary btn-block" id="btn-copy">Copiar mensaje para el chat</button>
         <textarea id="copy-area" class="copy-area hidden" readonly rows="2"></textarea>
         <p class="small muted" id="copy-msg"></p>
         <div class="d-section">
-          <h3>Desbloquear mi dossier</h3>
+          <h3>Ver mis resultados</h3>
           <p class="muted">Al final, la pantalla principal mostrará una clave.</p>
           <div class="alias-row">
             <input id="key-input" class="input mono" placeholder="ABCD-ABCD-AB0" autocomplete="off" autocapitalize="characters" spellcheck="false" />
@@ -165,23 +165,22 @@
     <!-- Dossier personal -->
     <section class="p-screen" id="p-dossier">
       <div class="dossier">
-        <span class="kicker">Tu dossier · privado</span>
-        <h2>Tu resultado</h2>
+        <span class="kicker">Tus resultados · solo los ves tú</span>
+        <h2>Resumen</h2>
         <div class="d-score"><span id="d-score">0</span><small id="d-total">/ 10</small></div>
         <p class="muted" id="d-sub"></p>
         <div class="d-section">
-          <h3>Por dominio</h3>
+          <h3>Por área</h3>
           <div id="d-domains"></div>
         </div>
         <div class="d-section">
-          <h3>Calibración</h3>
+          <h3>Confianza</h3>
           <p id="d-calib"></p>
         </div>
         <div class="d-section" id="d-recos-wrap">
-          <h3>Para seguir aprendiendo</h3>
+          <h3>Temas para reforzar</h3>
           <ul id="d-recos"></ul>
         </div>
-        <p class="d-foot">Solo tú ves este dossier. No hay ranking.</p>
         <button class="btn btn-ghost hidden" id="d-back">Volver a mi código</button>
       </div>
     </section>

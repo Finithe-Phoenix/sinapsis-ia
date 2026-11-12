@@ -133,14 +133,14 @@ export function calibrationHtml(c) {
   if (!c.total) return '<p class="empty">Sin datos de confianza todavía.</p>';
   const p = (v) => Math.round((v / c.total) * 100);
   const tile = (cls, title, val, desc) =>
-    `<div class="ctile ${cls}"><span class="t">${title}</span><b>${p(val)}%</b><span class="d">${desc} · ${val}</span></div>`;
+    `<div class="ctile ${cls}"><span class="t">${title}</span><b>${p(val)}%</b><span class="d">${desc} (${val})</span></div>`;
   return `<div class="calib">
     <span></span><span class="ax">Correcto</span><span class="ax">Incorrecto</span>
     <span class="ax row">Seguro</span>
-    ${tile('good', 'Dominio real', c.dominio, 'Sabe y lo sabe')}
-    ${tile('alert', 'Falsa confianza', c.falsa, 'Seguro, pero se equivocó')}
+    ${tile('good', 'Seguros y correctos', c.dominio, 'Conocimiento sólido')}
+    ${tile('alert', 'Seguros e incorrectos', c.falsa, 'Requiere atención')}
     <span class="ax row">Con dudas</span>
-    ${tile('', 'Conocimiento frágil', c.fragil, 'Acertó sin certeza')}
-    ${tile('', 'Brecha reconocida', c.brecha, 'Sabe que no sabe')}
+    ${tile('', 'Con dudas y correctos', c.fragil, 'Por afianzar')}
+    ${tile('', 'Con dudas e incorrectos', c.brecha, 'Por reforzar')}
   </div>`;
 }

@@ -128,7 +128,7 @@ async function init() {
     if (last && store.get(tabKey(pin)) === last) joinRed(pin, last, { silent: true });
     else if (last && !ANON) {
       aliasInput.value = last;
-      $('#alias-hint').textContent = `¿Eres ${last}? Toca «Entrar» para continuar donde te quedaste.`;
+      $('#alias-hint').textContent = `¿Eres ${last}? Toca “Entrar” para continuar donde te quedaste.`;
     }
   } else {
     $('#pin-field').classList.add('hidden');
@@ -198,7 +198,7 @@ async function joinRed(pin, alias, { silent = false } = {}) {
     store.set(tabKey(pin), alias);
     save();
     setMeChip(alias);
-    $('#wait-title').textContent = ANON ? 'Bienvenido a la red' : `Bienvenido, ${alias}`;
+    $('#wait-title').textContent = ANON ? 'Bienvenido' : `Bienvenido, ${alias}`;
     show('wait');
     vibrate(30);
     P.transport.onState(onState);
@@ -374,7 +374,7 @@ function onReveal(s) {
     $('#pr-title').textContent = 'Correcto';
     $('#pr-answer').innerHTML = `Elegiste ${right}`;
   } else {
-    $('#pr-title').textContent = 'No esta vez';
+    $('#pr-title').textContent = 'Respuesta incorrecta';
     $('#pr-answer').innerHTML = `Elegiste ${LETTERS[mine]}. La respuesta correcta era ${right}`;
   }
   $('#pr-expl').textContent = s.explanation || '';
@@ -613,10 +613,10 @@ function renderDossier({ total, key, qdomains, recos, answers, confs }) {
     .join('');
   requestAnimationFrame(() => requestAnimationFrame(() => $$('.bar-fg').forEach((b) => (b.style.width = b.dataset.w + '%'))));
   let calib;
-  if (sureWrong >= 2) calib = `Ojo: en ${sureWrong} respuestas estabas seguro y no acertaste. Son los temas que más vale la pena repasar.`;
-  else if (sureWrong === 1) calib = 'En una respuesta estabas seguro y no acertaste. Revisa ese tema con calma.';
-  else if (sureRight > 0) calib = 'Tu confianza está bien calibrada: cuando estabas seguro, acertaste.';
-  else calib = 'Indicaste dudas en tus respuestas; el debrief de cada pregunta es un buen punto de partida.';
+  if (sureWrong >= 2) calib = `En ${sureWrong} respuestas marcaste “Seguro” y no acertaste. Conviene repasar esos temas.`;
+  else if (sureWrong === 1) calib = 'En una respuesta marcaste “Seguro” y no acertaste. Conviene repasar ese tema.';
+  else if (sureRight > 0) calib = 'Cuando marcaste “Seguro”, acertaste.';
+  else calib = 'Marcaste dudas en tus respuestas. Las explicaciones de cada pregunta te ayudarán a repasar.';
   $('#d-calib').textContent = calib;
   const list = (recos || []).filter((r) => {
     const v = dom[r.label];

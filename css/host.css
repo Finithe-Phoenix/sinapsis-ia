@@ -1099,7 +1099,7 @@ body.pointer .host-only:not(.report-tools) { opacity: 1; pointer-events: auto; }
   transition: opacity 1.6s;
 }
 .credits-end.in { opacity: 1; }
-.credits-end h2 { margin: 14.4px 0 0; font-size: clamp(3.4rem, 115.2px, 9rem); font-weight: 800; letter-spacing: -0.045em; }
+.credits-end h2 { margin: 14.4px 0 0; font-size: 76px; font-weight: 800; letter-spacing: -0.04em; }
 .credits-end p { margin: 0; font-size: clamp(1rem, 23px, 1.8rem); color: var(--gray); font-weight: 300; }
 .dossier-key {
   margin-top: 28.8px;
